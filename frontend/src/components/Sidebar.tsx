@@ -1,107 +1,122 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  LayoutDashboard, Package, ArrowRightLeft, CalendarCheck, Wrench,
+  Shield, BarChart3, History, Settings, ChevronLeft, ChevronRight,
+  LogOut
+} from 'lucide-react';
 
-interface NavItem {
-  label: string;
-  icon: string;
-  href: string;
-}
-
-const mainNavItems: NavItem[] = [
-  { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
-  { label: "Organization Setup", icon: "corporate_fare", href: "/organization-setup" },
-  { label: "Assets", icon: "inventory_2", href: "/assets" },
-  { label: "Allocation & Transfer", icon: "swap_horiz", href: "/allocation" },
-  { label: "Resource Booking", icon: "event_seat", href: "/booking" },
-  { label: "Maintenance", icon: "build", href: "/maintenance" },
-  { label: "Audit", icon: "fact_check", href: "/audit" },
-  { label: "Reports", icon: "analytics", href: "/reports" },
-  { label: "Notifications", icon: "notifications", href: "/activity" },
+const navItems = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Assets', href: '/assets', icon: Package },
+  { label: 'Allocation', href: '/allocation', icon: ArrowRightLeft },
+  { label: 'Booking', href: '/booking', icon: CalendarCheck },
+  { label: 'Maintenance', href: '/maintenance', icon: Wrench },
+  { label: 'Audit', href: '/audit', icon: Shield },
+  { label: 'Reports', href: '/reports', icon: BarChart3 },
+  { label: 'Activity', href: '/activity', icon: History },
+  { label: 'Settings', href: '/organization-setup', icon: Settings },
 ];
 
-const footerNavItems: NavItem[] = [
-  { label: "Settings", icon: "settings", href: "#" },
-  { label: "Logout", icon: "logout", href: "/" },
-];
-
-export default function Sidebar() {
+export default function Sidebar({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
-    <>
-      {/* Desktop/Tablet Sidebar */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-low border-r border-border-subtle py-standard z-40 transition-all duration-300">
-        {/* Brand */}
-        <div className="px-container mb-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary font-bold shadow-sm">
-            A
+    <aside
+      className={`fixed left-0 top-0 bottom-0 z-50 bg-white border-r border-[#E2E8F0] flex flex-col transition-all duration-300 ease-in-out ${
+        collapsed ? 'w-[64px]' : 'w-[240px]'
+      }`}
+    >
+      {/* Logo */}
+      <div className={`flex items-center h-16 border-b border-[#E2E8F0] px-4 ${collapsed ? 'justify-center' : ''}`}>
+        <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#0F172A] flex items-center justify-center shrink-0">
+            <span className="text-white text-sm font-bold">A</span>
           </div>
-          <div>
-            <div className="text-headline-md font-bold text-primary">AssetFlow</div>
-            <div className="text-label-md text-text-secondary">
-              Enterprise Resource Management
+          {!collapsed && (
+            <span className="text-[#0F172A] text-[16px] font-bold tracking-tight truncate">AssetFlow</span>
+          )}
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium transition-colors ${
+                collapsed ? 'justify-center' : ''
+              } ${
+                isActive
+                  ? 'bg-[#F1F5F9] text-[#0F172A]'
+                  : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
+              }`}
+              title={collapsed ? item.label : undefined}
+            >
+              <item.icon size={20} className="shrink-0" />
+              {!collapsed && <span className="truncate">{item.label}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom section */}
+      <div className="border-t border-[#E2E8F0] p-2">
+        {/* Collapse toggle */}
+        <button
+          onClick={onToggle}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors ${
+            collapsed ? 'justify-center' : ''
+          }`}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {!collapsed && <span className="truncate">Collapse</span>}
+        </button>
+
+        {/* User */}
+        {!collapsed && user && (
+          <div className="px-3 py-3 mt-1 border-t border-[#E2E8F0]">
+            <div className="text-[13px] font-medium text-[#0F172A] truncate">{user.name || user.email?.split('@')[0]}</div>
+            <div className="text-[12px] text-[#94A3B8] truncate">{user.email}</div>
+          </div>
+        )}
+        {collapsed && user && (
+          <div className="flex justify-center py-3 mt-1" title={user.email}>
+            <div className="w-8 h-8 rounded-full bg-[#F1F5F9] flex items-center justify-center">
+              <span className="text-[13px] font-medium text-[#0F172A]">
+                {(user.name || user.email || 'U')[0].toUpperCase()}
+              </span>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Main Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 space-y-1">
-          {mainNavItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg mx-2 my-1 transition-all duration-200 ${
-                  isActive
-                    ? "bg-primary text-on-primary translate-x-1"
-                    : "text-text-secondary hover:bg-surface-container-high"
-                }`}
-              >
-                <span
-                  className={`material-symbols-outlined text-[20px] ${
-                    isActive ? "filled" : ""
-                  }`}
-                >
-                  {item.icon}
-                </span>
-                <span className={`text-label-md ${isActive ? "font-bold" : ""}`}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Footer Nav */}
-        <div className="px-2 mt-auto space-y-1 border-t border-border-subtle pt-4">
-          {footerNavItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-surface-container-high rounded-lg mx-2 my-1 transition-all duration-200"
-            >
-              <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-              <span className="text-label-md">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </aside>
-
-      {/* Mobile Top Bar */}
-      <header className="md:hidden flex justify-between items-center h-16 px-container w-full bg-surface-container-lowest border-b border-border-subtle sticky top-0 z-50">
-        <div className="text-headline-lg font-black text-primary">AssetFlow</div>
-        <div className="flex items-center gap-4">
-          <button className="text-text-secondary hover:bg-surface-container-low transition-colors p-2 rounded-full">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button className="text-text-secondary hover:bg-surface-container-low transition-colors p-2 rounded-full">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-        </div>
-      </header>
-    </>
+        {/* Logout */}
+        <button
+          onClick={logout}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-[#475569] hover:bg-[#F8FAFC] hover:text-[#EF4444] transition-colors ${
+            collapsed ? 'justify-center' : ''
+          }`}
+          title="Sign out"
+        >
+          <LogOut size={20} className="shrink-0" />
+          {!collapsed && <span className="truncate">Sign out</span>}
+        </button>
+      </div>
+    </aside>
   );
 }

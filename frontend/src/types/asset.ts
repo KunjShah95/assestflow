@@ -12,6 +12,7 @@ export interface Asset {
   description: string | null;
   categoryId: number | null;
   categoryName?: string;
+  isBookable?: boolean;
   status: 'available' | 'allocated' | 'maintenance' | 'retired';
   location: string | null;
   purchaseDate: string | null;

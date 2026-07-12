@@ -1,6 +1,7 @@
 "use client";
 
-import React, { ReactNode, useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -34,23 +35,21 @@ export default function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
-        className={`w-full ${maxWidth} bg-surface-container-lowest border border-border-subtle rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}
+        className={`w-full ${maxWidth} bg-white border border-[#E2E8F0] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-surface-container-low">
-          <h3 className="text-headline-sm font-bold text-text-primary">{title}</h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+          <h3 className="text-[16px] font-semibold text-[#0F172A]">{title}</h3>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary hover:bg-surface-container p-1 rounded-full transition-colors flex items-center justify-center"
+            className="text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] p-1.5 rounded-lg transition-colors flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <X size={18} />
           </button>
         </div>
 
-        {/* Modal Content */}
         <div className="p-6 overflow-y-auto">{children}</div>
       </div>
     </div>
