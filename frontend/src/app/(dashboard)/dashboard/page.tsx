@@ -59,7 +59,11 @@ export default function DashboardPage() {
                   log.action?.toLowerCase().includes("return") ? "bg-secondary-container text-primary" :
                   "bg-surface-container text-text-secondary",
           title: `${log.action || "Activity"} #${log.id}`,
-          desc: log.details || `${log.entityType || "Entity"} updated`,
+          desc: typeof log.details === 'string'
+            ? log.details
+            : log.details
+              ? JSON.stringify(log.details)
+              : `${log.entityType || "Entity"} updated`,
           time: log.createdAt ? new Date(log.createdAt).toLocaleDateString() : "Recently",
         }));
 
