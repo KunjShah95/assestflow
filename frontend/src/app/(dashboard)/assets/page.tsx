@@ -5,7 +5,7 @@ import Modal from "@/components/Modal";
 import { useApiError } from "@/hooks/useApiError";
 import { assetService } from "@/services/asset.service";
 import type { Asset, AssetCategory } from "@/types/asset";
-import { Search, Plus, ChevronDown, FilterX, ArrowDown, Package, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Plus, ChevronDown, FilterX, ArrowDown, Package, MoreHorizontal, ChevronLeft, ChevronRight, Download, FileText, Table, FileSpreadsheet } from "lucide-react";
 
 interface AssetItem {
   id: number;
@@ -60,7 +60,7 @@ export default function AssetsPage() {
 
         const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
           id: a.id,
-          tag: a.assetTag || "",
+          tag: a.tag || a.assetTag || "",
           name: a.name || "",
           icon: "inventory_2",
           category: cats?.find((c: AssetCategory) => c.id === a.categoryId)?.name || "General",
@@ -120,7 +120,7 @@ export default function AssetsPage() {
       const items = await assetService.list();
       const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
         id: a.id,
-        tag: a.assetTag || "",
+        tag: a.tag || a.assetTag || "",
         name: a.name || "",
         icon: "inventory_2",
         category: "General",
@@ -156,6 +156,77 @@ export default function AssetsPage() {
     }
   };
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const el = document.createElement("a");
+    el.href = URL.createObjectURL(blob);
+    el.download = filename;
+    document.body.appendChild(el);
+    el.click();
+    document.body.removeChild(el);
+  };
+
+  const exportToCSV = () => {
+    try {
+      const header = "Tag ID,Name,Category,Status,Location";
+      const rows = filteredAssets.map((a) =>
+        [a.tag, a.name, a.category, a.status, a.location]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",")
+      );
+      const csv = "\uFEFF" + [header, ...rows].join("\r\n");
+      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `assetflow-assets-${new Date().toISOString().slice(0, 10)}.csv`);
+      showToast(`Exported ${filteredAssets.length} assets as CSV`, "success");
+    } catch {
+      showToast("CSV export failed", "error");
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      const header = "Tag ID,Name,Category,Status,Location";
+      const rows = filteredAssets.map((a) =>
+        [a.tag, a.name, a.category, a.status, a.location]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",")
+      );
+      const xls = "\uFEFF" + [header, ...rows].join("\r\n");
+      downloadBlob(new Blob([xls], { type: "application/vnd.ms-excel;charset=utf-8" }), `assetflow-assets-${new Date().toISOString().slice(0, 10)}.xls`);
+      showToast(`Exported ${filteredAssets.length} assets as Excel`, "success");
+    } catch {
+      showToast("Excel export failed", "error");
+    }
+  };
+
+  const exportToPDF = () => {
+    try {
+      const printWin = window.open("", "_blank");
+      if (!printWin) { showToast("Pop-up blocked. Allow pop-ups for PDF export.", "error"); return; }
+      const rows = filteredAssets.map((a) =>
+        `<tr><td>${a.tag}</td><td>${a.name}</td><td>${a.category}</td><td>${a.status}</td><td>${a.location}</td></tr>`
+      ).join("");
+      printWin.document.write(`
+        <html><head><title>Asset Directory</title>
+        <style>body{font-family:system-ui,sans-serif;padding:2rem}
+        h1{font-size:1.5rem;margin-bottom:.5rem}
+        p{color:#666;margin-bottom:1.5rem}
+        table{width:100%;border-collapse:collapse}
+        th{background:#005c55;color:#fff;text-align:left;padding:8px 12px;font-size:.85rem}
+        td{padding:8px 12px;border-bottom:1px solid #eee;font-size:.85rem}
+        tr:nth-child(even){background:#f9f9f9}
+        @media print{body{padding:0}} </style></head><body>
+        <h1>Asset Directory</h1>
+        <p>Generated: ${new Date().toLocaleDateString()} | ${filteredAssets.length} assets</p>
+        <table><thead><tr><th>Tag ID</th><th>Name</th><th>Category</th><th>Status</th><th>Location</th></tr></thead>
+        <tbody>${rows}</tbody></table></body></html>`);
+      printWin.document.close();
+      printWin.focus();
+      printWin.print();
+      showToast(`Exported ${filteredAssets.length} assets as PDF`, "success");
+    } catch {
+      showToast("PDF export failed", "error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] flex-1">
@@ -183,6 +254,17 @@ export default function AssetsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => exportToCSV()} title="Export CSV" className="p-2 rounded text-text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+              <FileText size={18} />
+            </button>
+            <button onClick={() => exportToExcel()} title="Export Excel" className="p-2 rounded text-text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+              <Table size={18} />
+            </button>
+            <button onClick={() => exportToPDF()} title="Export PDF" className="p-2 rounded text-text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+              <FileSpreadsheet size={18} />
+            </button>
           </div>
           <button
             onClick={() => setIsRegisterOpen(true)}

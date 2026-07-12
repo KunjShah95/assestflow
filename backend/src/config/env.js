@@ -5,6 +5,7 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   PORT: parseInt(process.env.PORT || '3001', 10),
+  BASE_URL: process.env.BASE_URL || 'http://localhost:3001',
 };
 
 const missing = Object.entries(env).filter(([_, v]) => !v);

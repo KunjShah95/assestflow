@@ -26,7 +26,7 @@ const statusIconMap: Record<string, typeof CheckCircle> = {
 export default function AuditPage() {
   const { showToast, handleError } = useApiError();
 
-  const [loading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [auditItems, setAuditItems] = useState<AuditItem[]>([
     { id: "AF-003", name: "Dell laptop", location: "Desk E12", status: "Verified", statusIcon: "check_circle", statusColor: "text-success bg-success/10", rowBg: "" },
@@ -57,7 +57,9 @@ export default function AuditPage() {
           } catch (err) { handleError(err, "Failed to load audit results"); }
         }
       } catch (err) {
-        handleError(err, "Failed to load audit cycles");
+        console.error("Failed to load audit cycles:", err);
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();

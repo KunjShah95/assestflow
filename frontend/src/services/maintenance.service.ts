@@ -21,4 +21,8 @@ export const maintenanceService = {
   resolve(id: number) {
     return apiPatch<{ message: string }>(`/maintenance/${id}/resolve`, {});
   },
+
+  updateStatus(id: number, status: string) {
+    return apiPatch<{ message: string }>(`/maintenance/${id}/status`, { status });
+  },
 };

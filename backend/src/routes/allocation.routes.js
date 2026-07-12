@@ -4,8 +4,8 @@ import { requireRole } from '../middleware/role.middleware.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 
 export const allocationRouter = Router();
-allocationRouter.get('/', asyncHandler(list));
-allocationRouter.post('/', requireRole('asset_manager', 'admin', 'department_head'), asyncHandler(doAllocate));
-allocationRouter.post('/transfer', asyncHandler(doTransfer));
-allocationRouter.patch('/transfer/:id/approve', requireRole('asset_manager', 'admin'), asyncHandler(approveTransfer));
-allocationRouter.post('/:id/return', requireRole('asset_manager', 'admin'), asyncHandler(doReturn));
+allocationRouter.get('/', list);
+allocationRouter.post('/', requireRole('asset_manager', 'admin', 'department_head'), doAllocate);
+allocationRouter.post('/transfer', requireRole('asset_manager', 'admin'), doTransfer);
+allocationRouter.patch('/transfer/:id/approve', requireRole('asset_manager', 'admin'), approveTransfer);
+allocationRouter.post('/:id/return', requireRole('asset_manager', 'admin'), doReturn);

@@ -30,7 +30,7 @@ export default function OrganizationSetupPage() {
     async function fetchData() {
       try {
         const depts = await departmentService.list();
-        const mapped: Department[] = (depts || []).map((d: any, index: number) => ({
+        const mapped: Department[] = (depts || []).map((d, index) => ({
           id: d.id || index,
           name: d.name || "",
           head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
@@ -73,7 +73,7 @@ export default function OrganizationSetupPage() {
       setNewDept({ name: "", head: "", parent: "--", status: "Active" });
       
       const depts = await departmentService.list();
-      const mapped: Department[] = (depts || []).map((d: any, index: number) => ({
+      const mapped: Department[] = (depts || []).map((d, index) => ({
         id: d.id || index,
         name: d.name || "", 
         head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",

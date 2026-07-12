@@ -17,6 +17,7 @@ interface MaintenanceCard {
   avatar?: string;
   borderLeft?: boolean;
   completed?: string;
+  requestId?: number;
 }
 
 interface Column {
@@ -33,6 +34,8 @@ export default function MaintenancePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ assetId: "AF-0125", title: "", priority: "High" });
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+  const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
 
   const [columns, setColumns] = useState<Column[]>([
     { title: "Pending", color: "bg-warning", cards: [] },
@@ -52,12 +55,14 @@ export default function MaintenancePage() {
 
         (requests || []).forEach((req: MaintenanceRequest) => {
           const r = req as MaintenanceRequest & Record<string, unknown>;
+          const assetTag = `AF-${String(req.assetId || req.id).padStart(4, "0")}`;
           const card: MaintenanceCard = {
-            id: `AF-${String(req.assetId || req.id).padStart(4, "0")}`,
+            id: `r${req.id}-${assetTag}`,
             title: req.description || "No description",
             priority: req.priority === "high" ? "High" : req.priority === "medium" ? "Med" : "Low",
             priorityColor: req.priority === "high" ? "bg-danger/10 text-danger" : req.priority === "medium" ? "bg-warning/10 text-warning" : "bg-surface-container-highest text-text-secondary",
             date: req.createdAt ? `Reported: ${new Date(req.createdAt).toLocaleDateString()}` : "Recently",
+            requestId: req.id,
           };
           if (req.status === "pending") pending.push(card);
           else if (req.status === "approved") approved.push({ ...card, assignee: (r.assignedTechnician as string) || "Unassigned", borderLeft: true });
@@ -100,13 +105,90 @@ export default function MaintenancePage() {
       });
 
       const priorityColor = form.priority === "High" ? "bg-danger/10 text-danger" : form.priority === "Med" ? "bg-warning/10 text-warning" : "bg-surface-container-highest text-text-secondary";
-      const newCard: MaintenanceCard = { id: form.assetId, title: form.title, priority: form.priority, priorityColor, date: "Reported: Just now" };
+      const newCard: MaintenanceCard = { id: `${form.assetId}-${Date.now()}`, title: form.title, priority: form.priority, priorityColor, date: "Reported: Just now" };
       setColumns(columns.map((col) => col.title === "Pending" ? { ...col, cards: [newCard, ...col.cards] } : col));
       showToast(`Maintenance request logged for ${form.assetId}`, "success");
       setIsModalOpen(false);
       setForm({ assetId: `AF-${Math.floor(100 + Math.random() * 900)}`, title: "", priority: "High" });
     } catch (err) {
       handleError(err, "Failed to create request");
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, cardId: string) => {
+    setDraggedCardId(cardId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", cardId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedCardId(null);
+    setDragOverCol(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, colTitle: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverCol(colTitle);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverCol(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetColTitle: string) => {
+    e.preventDefault();
+    setDragOverCol(null);
+    setDraggedCardId(null);
+
+    const cardId = e.dataTransfer.getData("text/plain");
+    if (!cardId) return;
+
+    const colMap: Record<string, string> = {
+      Pending: "pending",
+      Approved: "approved",
+      "In Progress": "in_progress",
+      Resolved: "resolved",
+    };
+
+    const targetStatus = colMap[targetColTitle];
+    if (!targetStatus) return;
+
+    const targetCol = columns.find((c) => c.title === targetColTitle);
+    const sourceCol = columns.find((c) => c.cards.some((cd) => cd.id === cardId));
+    if (!targetCol || !sourceCol || sourceCol.title === targetColTitle) return;
+
+    const movedCard = sourceCol.cards.find((c) => c.id === cardId)!;
+
+    const newColumns = columns.map((col) => {
+      if (col.title === sourceCol.title) {
+        return { ...col, cards: col.cards.filter((c) => c.id !== cardId) };
+      }
+      return col;
+    });
+
+    const updatedCard = { ...movedCard };
+    if (targetColTitle === "Resolved") {
+      updatedCard.completed = `Completed: ${new Date().toLocaleDateString()}`;
+      delete updatedCard.assignee;
+      delete updatedCard.avatar;
+    }
+
+    const finalColumns = newColumns.map((col) =>
+      col.title === targetColTitle
+        ? { ...col, cards: [...col.cards, updatedCard] }
+        : col
+    );
+    setColumns(finalColumns);
+    showToast(`${movedCard.id} moved to ${targetColTitle}`, "success");
+
+    if (movedCard.requestId) {
+      try {
+        await maintenanceService.updateStatus(movedCard.requestId, targetStatus);
+      } catch {
+        showToast("Status sync failed", "error");
+        setColumns(columns);
+      }
     }
   };
 
@@ -142,7 +224,7 @@ export default function MaintenancePage() {
           {columns.map((col) => {
             const visibleCards = col.cards.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.id.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
-              <div key={col.title} className={`w-80 flex flex-col bg-surface-container-low rounded-lg p-standard border border-border-subtle shrink-0 ${col.faded ? "opacity-80 hover:opacity-100 transition-opacity" : ""}`} style={{ minHeight: "calc(100vh - 200px)" }}>
+              <div key={col.title} onDragOver={(e) => handleDragOver(e, col.title)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, col.title)} className={`w-80 flex flex-col bg-surface-container-low rounded-lg p-standard border shrink-0 transition-all ${col.faded ? "opacity-80 hover:opacity-100 transition-opacity" : ""} ${dragOverCol === col.title ? "border-primary bg-primary/5 shadow-lg scale-[1.02]" : "border-border-subtle"}`} style={{ minHeight: "calc(100vh - 200px)" }}>
                 <div className="flex justify-between items-center mb-standard">
                   <h2 className="text-headline-sm text-text-primary flex items-center gap-2 uppercase tracking-wide"><span className={`w-2 h-2 rounded-full ${col.color}`} />{col.title}</h2>
                   <span className="text-mono-data bg-surface-container-highest px-2 py-1 rounded text-text-secondary font-semibold">{visibleCards.length}</span>
@@ -151,7 +233,7 @@ export default function MaintenancePage() {
                   {visibleCards.length === 0 ? <p className="text-body-sm text-text-secondary italic text-center py-4">No matching tasks</p> : visibleCards.map((card) => {
                     if ("completed" in card && card.completed) {
                       return (
-                        <div key={card.id} onClick={() => showToast(`Resolved task: ${card.title}`, "info")} className="bg-success/5 border border-success/20 rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-sm">
+                        <div key={card.id} draggable onDragStart={(e) => handleDragStart(e, card.id)} onDragEnd={handleDragEnd} onClick={() => showToast(`Resolved task: ${card.title}`, "info")} className={`bg-success/5 border border-success/20 rounded-lg p-standard cursor-grab active:cursor-grabbing transition-all flex flex-col gap-compact hover:shadow-sm ${draggedCardId === card.id ? "opacity-40" : ""}`}>
                           <div className="flex justify-between items-start"><span className="text-mono-data font-bold text-text-secondary line-through">{card.id}</span></div>
                           <div className="text-label-md text-text-secondary">{card.title}</div>
                           <div className="flex items-center gap-1 text-success mt-2"><CheckCircle size={14} /><span className="text-[11px] font-medium">{card.completed}</span></div>
@@ -159,7 +241,7 @@ export default function MaintenancePage() {
                       );
                     }
                     return (
-                      <div key={card.id} onClick={() => showToast(`Active Ticket ${card.id}: ${card.title}`, "info")} className={`bg-surface-container-lowest border border-border-subtle rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-md ${card.borderLeft ? "border-l-2 border-l-info" : ""}`}>
+                      <div key={card.id} draggable onDragStart={(e) => handleDragStart(e, card.id)} onDragEnd={handleDragEnd} onClick={() => showToast(`Active Ticket ${card.id}: ${card.title}`, "info")} className={`bg-surface-container-lowest border border-border-subtle rounded-lg p-standard cursor-grab active:cursor-grabbing transition-all flex flex-col gap-compact hover:shadow-md ${card.borderLeft ? "border-l-2 border-l-info" : ""} ${draggedCardId === card.id ? "opacity-40" : ""}`}>
                         <div className="flex justify-between items-start">
                           <span className="text-mono-data font-bold text-text-primary">{card.id}</span>
                           {card.priority && <span className={`${card.priorityColor} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider`}>{card.priority}</span>}

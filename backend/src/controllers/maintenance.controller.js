@@ -24,7 +24,16 @@ export async function resolve(req, res) {
   res.json(result);
 }
 
-export async function list(req, res) {
-  const items = await db.select().from(maintenanceRequests).orderBy(desc(maintenanceRequests.createdAt));
-  res.json(items);
+export async function updateStatus(req, res, next) {
+  try {
+    const result = await maintenanceEngine.updateStatus(parseInt(req.params.id), req.body.status);
+    res.json(result);
+  } catch (err) { next(err); }
+}
+
+export async function list(req, res, next) {
+  try {
+    const items = await db.select().from(maintenanceRequests).orderBy(desc(maintenanceRequests.createdAt));
+    res.json(items);
+  } catch (err) { next(err); }
 }

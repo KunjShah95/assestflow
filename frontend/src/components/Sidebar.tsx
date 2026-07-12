@@ -20,6 +20,7 @@ const navItems = [
   { label: 'Audit', href: '/audit', icon: Shield },
   { label: 'Reports', href: '/reports', icon: BarChart3 },
   { label: 'Notifications', href: '/activity', icon: Bell },
+  { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar({

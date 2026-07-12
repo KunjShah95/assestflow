@@ -28,3 +28,23 @@ export async function resolveRequest(requestId) {
   await db.update(assets).set({ status: 'available' }).where(eq(assets.id, req.assetId));
   return { message: 'Maintenance resolved, asset available' };
 }
+
+export async function updateStatus(requestId, status) {
+  const validTransitions = ['pending', 'approved', 'in_progress', 'resolved', 'rejected'];
+  if (!validTransitions.includes(status)) {
+    throw Object.assign(new Error('Invalid status'), { status: 400 });
+  }
+  const [req] = await db.select().from(maintenanceRequests).where(eq(maintenanceRequests.id, requestId)).limit(1);
+  if (!req) throw Object.assign(new Error('Request not found'), { status: 404 });
+
+  await db.update(maintenanceRequests).set({ status }).where(eq(maintenanceRequests.id, requestId));
+
+  if (status === 'approved' || status === 'in_progress') {
+    await db.update(assets).set({ status: 'under_maintenance' }).where(eq(assets.id, req.assetId));
+  } else if (status === 'resolved') {
+    await db.update(maintenanceRequests).set({ resolvedAt: new Date() }).where(eq(maintenanceRequests.id, requestId));
+    await db.update(assets).set({ status: 'available' }).where(eq(assets.id, req.assetId));
+  }
+
+  return { message: `Status updated to ${status}` };
+}

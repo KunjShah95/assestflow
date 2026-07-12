@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, X, Menu } from "lucide-react";
+import { X, Menu } from "lucide-react";
 
 const DASHBOARD_ROUTES = [
   "/dashboard",
@@ -25,13 +25,12 @@ function isDashboardRoute(pathname: string) {
 }
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  if (isDashboardRoute(pathname)) {
-    return null;
-  }
+  // Hide navbar for authenticated users — the Sidebar handles navigation
+  if (user) return null;
 
   const guestLinks = [
     { label: "Product", href: "/product" },
@@ -39,20 +38,6 @@ export default function Navbar() {
     { label: "Developers", href: "/developers" },
     { label: "Pricing", href: "/pricing" },
   ];
-
-  const authLinks = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Organization setup", href: "/organization-setup" },
-    { label: "Assets", href: "/assets" },
-    { label: "Allocation & Transfer", href: "/allocation" },
-    { label: "Resource Booking", href: "/booking" },
-    { label: "Maintenance", href: "/maintenance" },
-    { label: "Audit", href: "/audit" },
-    { label: "Reports", href: "/reports" },
-    { label: "Notifications", href: "/activity" },
-  ];
-
-  const activeLinks = user ? authLinks : guestLinks;
 
   return (
     <nav key={pathname} className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-border">
@@ -62,7 +47,7 @@ export default function Navbar() {
             AssetFlow
           </Link>
           <div className="hidden xl:flex items-center gap-6">
-            {activeLinks.map((link) => {
+            {guestLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
@@ -82,32 +67,17 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          {user ? (
-            <div className="hidden md:flex items-center gap-4">
-              <span className="text-text-secondary font-body-md">
-                Welcome, <span className="font-semibold text-text-primary">{user.name}</span>
-              </span>
-              <button
-                onClick={logout}
-                className="bg-white border border-border text-text-primary px-5 py-2.5 rounded-full font-button text-button hover:border-text-primary transition-all shadow-sm flex items-center gap-1.5"
-              >
-                <LogOut size={18} />
-                Log Out
-              </button>
-            </div>
-          ) : (
-            <div className="hidden md:flex items-center gap-4">
-              <Link href="/login" className="text-text-secondary font-button text-button px-4 py-2 hover:text-primary transition-colors">
-                Log In
-              </Link>
-              <Link
-                href="/contact"
-                className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all shadow-sm"
-              >
-                Book Demo
-              </Link>
-            </div>
-          )}
+          <div className="hidden md:flex items-center gap-4">
+            <Link href="/login" className="text-text-secondary font-button text-button px-4 py-2 hover:text-primary transition-colors">
+              Log In
+            </Link>
+            <Link
+              href="/contact"
+              className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all shadow-sm"
+            >
+              Book Demo
+            </Link>
+          </div>
 
           {/* Mobile hamburger menu */}
           <button
@@ -123,7 +93,7 @@ export default function Navbar() {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="xl:hidden border-t border-border bg-surface px-6 py-4 flex flex-col gap-4 animate-fade-in shadow-lg">
-          {activeLinks.map((link) => {
+          {guestLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
@@ -137,32 +107,17 @@ export default function Navbar() {
               </Link>
             );
           })}
-          {user ? (
-            <div className="flex flex-col gap-3 pt-3 border-t border-border">
-              <span className="text-text-secondary text-sm">
-                Welcome, <span className="font-semibold text-text-primary">{user.name}</span>
-              </span>
-              <button
-                onClick={logout}
-                className="w-full bg-white border border-border text-text-primary px-4 py-2 rounded-full font-button text-button hover:border-text-primary transition-all text-center flex items-center justify-center gap-2"
-              >
-                <LogOut size={18} />
-                Log Out
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 pt-3 border-t border-border">
-              <Link href="/login" className="text-text-secondary text-center py-2 hover:text-primary transition-colors">
-                Log In
-              </Link>
-              <Link
-                href="/contact"
-                className="w-full bg-primary text-on-primary py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all text-center block"
-              >
-                Book Demo
-              </Link>
-            </div>
-          )}
+          <div className="flex flex-col gap-3 pt-3 border-t border-border">
+            <Link href="/login" className="text-text-secondary text-center py-2 hover:text-primary transition-colors">
+              Log In
+            </Link>
+            <Link
+              href="/contact"
+              className="w-full bg-primary text-on-primary py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all text-center block"
+            >
+              Book Demo
+            </Link>
+          </div>
         </div>
       )}
     </nav>

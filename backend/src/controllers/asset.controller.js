@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { db } from '../config/db.js';
+import { env } from '../config/env.js';
 import { assets } from '../models/schema.js';
 import { eq, desc, like, and, or } from 'drizzle-orm';
 import QRCode from 'qrcode';
@@ -28,12 +29,14 @@ export async function getById(req, res) {
   res.json(asset);
 }
 
-export async function create(req, res) {
-  const data = z.object({ name: z.string().min(1), categoryId: z.number(), serialNumber: z.string().optional(), acquisitionDate: z.string().optional(), acquisitionCost: z.string().optional(), condition: z.string().optional(), location: z.string().optional(), isBookable: z.boolean().optional() }).parse(req.body);
-  const assetTag = await generateAssetTag();
-  const qrCode = await QRCode.toDataURL(`${req.protocol}://${req.get('host')}/assets/${assetTag}`);
-  const [asset] = await db.insert(assets).values({ ...data, assetTag, qrCode, status: 'available' }).returning();
-  res.status(201).json(asset);
+export async function create(req, res, next) {
+  try {
+    const data = z.object({ name: z.string().min(1), categoryId: z.number(), serialNumber: z.string().optional(), acquisitionDate: z.string().optional(), acquisitionCost: z.string().optional(), condition: z.string().optional(), location: z.string().optional(), isBookable: z.boolean().optional() }).parse(req.body);
+    const assetTag = await generateAssetTag();
+    const qrCode = await QRCode.toDataURL(`${env.BASE_URL}/assets/${assetTag}`);
+    const [asset] = await db.insert(assets).values({ ...data, assetTag, qrCode, status: 'available' }).returning();
+    res.status(201).json(asset);
+  } catch (err) { next(err); }
 }
 
 export async function update(req, res) {
