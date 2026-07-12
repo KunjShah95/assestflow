@@ -24,16 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     clearToken();
     setUser(null);
-    router.push('/');
-  }, [router]);
+    window.location.href = '/';
+  }, []);
 
   useEffect(() => {
     setAuthExpiredHandler(() => {
       setUser(null);
-      router.push('/');
+      window.location.href = '/';
     });
     return () => setAuthExpiredHandler(null);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;

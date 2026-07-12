@@ -24,7 +24,7 @@ export async function authenticate(req, res, next) {
     }
 
     req.user = { id: employee.id, email: employee.email, role: employee.role, name: employee.name, departmentId: employee.departmentId };
-    next();
+    return next();
   } catch (err) {
     next(err);
   }

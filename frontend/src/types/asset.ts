@@ -3,6 +3,7 @@ export interface AssetCategory {
   name: string;
   description: string | null;
   status: string;
+  warrantyPeriodDays?: number | null;
 }
 
 export interface Asset {

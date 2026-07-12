@@ -7,9 +7,13 @@ import QRCode from 'qrcode';
 import { AppError } from '../utils/AppError.js';
 
 async function generateAssetTag() {
-  const [last] = await db.select({ tag: assets.assetTag }).from(assets).orderBy(desc(assets.assetTag)).limit(1);
-  const num = last ? parseInt(last.tag.split('-')[1]) + 1 : 1;
-  return `AF-${String(num).padStart(4, '0')}`;
+  try {
+    const [last] = await db.select({ tag: assets.assetTag }).from(assets).orderBy(desc(assets.assetTag)).limit(1);
+    const num = last ? parseInt(last.tag.split('-')[1]) + 1 : 1;
+    return `AF-${String(num).padStart(4, '0')}`;
+  } catch (err) {
+    throw new AppError('Failed to generate asset tag', 500);
+  }
 }
 
 export async function list(req, res) {

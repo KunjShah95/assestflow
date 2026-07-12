@@ -160,7 +160,7 @@ export default function AllocationPage() {
         sub: `Reason: ${reason}`,
         active: true,
       };
-      setHistory([newEntry, ...history.map((h) => ({ ...h, active: false }))]);
+      setHistory((prev) => [newEntry, ...prev.map((h) => ({ ...h, active: false }))]);
       showToast(`Transfer request submitted for ${selected.assetTag} to ${toName}!`, "success");
       setToEmployeeId("");
       setReason("");
