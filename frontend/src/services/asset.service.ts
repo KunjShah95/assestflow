@@ -1,5 +1,4 @@
 import { apiGet, apiPost, apiPatch } from '@/lib/api-client';
-import type { ApiResponse } from '@/types/common';
 import type { Asset, AssetCategory, AssetFilter } from '@/types/asset';
 
 function buildQuery(filters?: AssetFilter): string {
@@ -7,7 +6,6 @@ function buildQuery(filters?: AssetFilter): string {
   const params = new URLSearchParams();
   if (filters.category) params.set('category', filters.category);
   if (filters.status) params.set('status', filters.status);
-  if (filters.department) params.set('departmentId', filters.department);
   if (filters.search) params.set('search', filters.search);
   const qs = params.toString();
   return qs ? `?${qs}` : '';
@@ -15,14 +13,14 @@ function buildQuery(filters?: AssetFilter): string {
 
 export const assetService = {
   list(filters?: AssetFilter) {
-    return apiGet<ApiResponse<Asset>>(`/assets${buildQuery(filters)}`);
+    return apiGet<Asset[]>(`/assets${buildQuery(filters)}`);
   },
 
   getById(id: number) {
     return apiGet<Asset>(`/assets/${id}`);
   },
 
-  create(data: Partial<Asset>) {
+  create(data: { name: string; categoryId: number; serialNumber?: string; location?: string; acquisitionDate?: string; acquisitionCost?: string; condition?: string; isBookable?: boolean }) {
     return apiPost<Asset>('/assets', data);
   },
 
@@ -31,7 +29,7 @@ export const assetService = {
   },
 
   categories() {
-    return apiGet<ApiResponse<AssetCategory>>('/categories');
+    return apiGet<AssetCategory[]>('/categories');
   },
 
   createCategory(data: { name: string; description?: string }) {

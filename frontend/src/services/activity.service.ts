@@ -1,14 +1,13 @@
 import { apiGet, apiPatch } from '@/lib/api-client';
-import type { ApiResponse } from '@/types/common';
 import type { ActivityLog, Notification } from '@/types/activity';
 
 export const activityService = {
   logs() {
-    return apiGet<ApiResponse<ActivityLog>>('/notifications/activity');
+    return apiGet<ActivityLog[]>('/notifications/activity-log');
   },
 
   notifications() {
-    return apiGet<ApiResponse<Notification>>('/notifications');
+    return apiGet<Notification[]>('/notifications');
   },
 
   markRead(id: number) {

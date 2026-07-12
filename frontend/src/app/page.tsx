@@ -3,30 +3,43 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { login, signup } = useAuth();
 
-  const [email, setEmail] = useState("name@company.com");
-  const [password, setPassword] = useState("**********");
+  const [email, setEmail] = useState("admin@assetflow.com");
+  const [password, setPassword] = useState("password123");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [signupForm, setSignupForm] = useState({
     name: "",
     email: "",
-    department: "Engineering",
+    password: "",
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    showToast("Signing in to AssetFlow Enterprise...", "info");
-    router.push("/dashboard");
+    if (!email || !password) {
+      showToast("Please enter email and password", "error");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      showToast("Signed in successfully!", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Login failed", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
@@ -40,15 +53,25 @@ export default function LoginPage() {
     setResetEmail("");
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupForm.name || !signupForm.email) {
+    if (!signupForm.name || !signupForm.email || !signupForm.password) {
       showToast("Please fill in all required fields", "error");
       return;
     }
-    showToast(`Account created for ${signupForm.name}! Welcome aboard.`, "success");
-    setIsSignupModalOpen(false);
-    router.push("/dashboard");
+    setIsSubmitting(true);
+    try {
+      await signup({ email: signupForm.email, password: signupForm.password, name: signupForm.name });
+      showToast(`Account created for ${signupForm.name}! Welcome aboard.`, "success");
+      setIsSignupModalOpen(false);
+      // Auto-login after signup
+      await login(signupForm.email, signupForm.password);
+      showToast("Signed in successfully!", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Signup failed", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,9 +135,10 @@ export default function LoginPage() {
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-surface-tint text-on-primary text-label-md uppercase rounded py-2.5 px-4 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 text-center font-medium shadow-sm"
+            disabled={isSubmitting}
+            className="w-full bg-primary hover:bg-surface-tint text-on-primary text-label-md uppercase rounded py-2.5 px-4 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 text-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
 
           {/* Divider & Sign Up */}
@@ -211,21 +235,17 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-label-md mb-1" htmlFor="signup-dept">
-              Department
+            <label className="block text-label-md mb-1" htmlFor="signup-password">
+              Password
             </label>
-            <select
-              id="signup-dept"
-              value={signupForm.department}
-              onChange={(e) => setSignupForm({ ...signupForm, department: e.target.value })}
+            <input
+              id="signup-password"
+              type="password"
+              placeholder="Min. 6 characters"
+              value={signupForm.password}
+              onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
               className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-            >
-              <option value="Engineering">Engineering</option>
-              <option value="Facilities">Facilities</option>
-              <option value="Field Ops">Field Ops</option>
-              <option value="HR">Human Resources</option>
-              <option value="IT">IT Infrastructure</option>
-            </select>
+            />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -237,9 +257,10 @@ export default function LoginPage() {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90"
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Complete Registration
+              {isSubmitting ? "Creating Account..." : "Complete Registration"}
             </button>
           </div>
         </form>

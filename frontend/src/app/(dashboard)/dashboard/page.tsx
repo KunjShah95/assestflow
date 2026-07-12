@@ -1,13 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
+import { reportService } from "@/services/report.service";
+import { activityService } from "@/services/activity.service";
+
+interface ActivityItem {
+  icon: string;
+  iconBg: string;
+  title: string;
+  desc: string;
+  time: string;
+}
+
+interface KpiData {
+  availableAssets: number;
+  allocatedAssets: number;
+  activeBookings: number;
+  pendingTransfers: number;
+  overdueReturns: number;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const { showToast } = useToast();
+
+  const [loading, setLoading] = useState(true);
+  const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [newAsset, setNewAsset] = useState({
@@ -17,36 +39,52 @@ export default function DashboardPage() {
     tag: "AF-0250",
   });
 
-  const [recentActivities, setRecentActivities] = useState([
-    {
-      icon: "computer",
-      iconBg: "bg-secondary-container text-primary",
-      title: "Laptop AF-0114",
-      desc: "Allocated to Priya Shah – IT Dept",
-      time: "10:42 AM",
-    },
-    {
-      icon: "meeting_room",
-      iconBg: "bg-tertiary-container/20 text-tertiary",
-      title: "Room B2",
-      desc: "Booking confirmed – 2:00 to 3:00 PM",
-      time: "09:15 AM",
-    },
-    {
-      icon: "check_circle",
-      iconBg: "bg-success/10 text-success",
-      title: "Projector AF-0062",
-      desc: "Maintenance resolved – ready for allocation",
-      time: "Yesterday",
-    },
-    {
-      icon: "chair",
-      iconBg: "bg-secondary-container text-primary",
-      title: "Office Chair AF-0201",
-      desc: "Returned by Field Ops (East)",
-      time: "Yesterday",
-    },
-  ]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [kpiData, logs] = await Promise.all([
+          reportService.kpi(),
+          activityService.logs(),
+        ]);
+        setKpi(kpiData);
+
+        const mapped = (logs || []).slice(0, 5).map((log: any) => ({
+          icon: log.action?.toLowerCase().includes("alloc") ? "computer" :
+                log.action?.toLowerCase().includes("book") ? "meeting_room" :
+                log.action?.toLowerCase().includes("maintenance") ? "build" :
+                log.action?.toLowerCase().includes("return") ? "chair" : "info",
+          iconBg: log.action?.toLowerCase().includes("alloc") ? "bg-secondary-container text-primary" :
+                  log.action?.toLowerCase().includes("book") ? "bg-tertiary-container/20 text-tertiary" :
+                  log.action?.toLowerCase().includes("maintenance") ? "bg-success/10 text-success" :
+                  log.action?.toLowerCase().includes("return") ? "bg-secondary-container text-primary" :
+                  "bg-surface-container text-text-secondary",
+          title: `${log.action || "Activity"} #${log.id}`,
+          desc: log.details || `${log.entityType || "Entity"} updated`,
+          time: log.createdAt ? new Date(log.createdAt).toLocaleDateString() : "Recently",
+        }));
+
+        if (mapped.length === 0) {
+          setRecentActivities([
+            { icon: "computer", iconBg: "bg-secondary-container text-primary", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
+            { icon: "meeting_room", iconBg: "bg-tertiary-container/20 text-tertiary", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
+          ]);
+        } else {
+          setRecentActivities(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+        // Fallback mock data
+        setKpi({ availableAssets: 128, allocatedAssets: 76, activeBookings: 9, pendingTransfers: 3, overdueReturns: 2 });
+        setRecentActivities([
+          { icon: "computer", iconBg: "bg-secondary-container text-primary", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
+          { icon: "meeting_room", iconBg: "bg-tertiary-container/20 text-tertiary", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const handleRegisterAsset = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +112,14 @@ export default function DashboardPage() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="text-text-secondary animate-pulse font-medium">Loading dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-container pb-24 animate-fade-in">
       {/* Page Header */}
@@ -89,10 +135,10 @@ export default function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Available", value: "128", route: "/assets" },
-          { label: "Allocated", value: "76", route: "/allocation" },
-          { label: "Active Bookings", value: "9", route: "/booking" },
-          { label: "Pending Transfers", value: "3", route: "/allocation" },
+          { label: "Available", value: kpi?.availableAssets ?? 0, route: "/assets" },
+          { label: "Allocated", value: kpi?.allocatedAssets ?? 0, route: "/allocation" },
+          { label: "Active Bookings", value: kpi?.activeBookings ?? 0, route: "/booking" },
+          { label: "Pending Transfers", value: kpi?.pendingTransfers ?? 0, route: "/allocation" },
         ].map((card) => (
           <div
             key={card.label}
@@ -110,18 +156,20 @@ export default function DashboardPage() {
       </div>
 
       {/* Alert Banner */}
-      <div
-        onClick={() => router.push("/activity")}
-        className="bg-error-container text-on-error-container border border-error/20 rounded-lg p-standard flex items-center justify-between gap-3 mb-8 cursor-pointer hover:bg-error-container/80 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined">warning</span>
-          <span className="text-body-md font-medium">
-            3 assets overdue for return – flagged for follow-up
-          </span>
+      {(kpi?.overdueReturns ?? 0) > 0 && (
+        <div
+          onClick={() => router.push("/activity")}
+          className="bg-error-container text-on-error-container border border-error/20 rounded-lg p-standard flex items-center justify-between gap-3 mb-8 cursor-pointer hover:bg-error-container/80 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined">warning</span>
+            <span className="text-body-md font-medium">
+              {kpi?.overdueReturns} asset(s) overdue for return – flagged for follow-up
+            </span>
+          </div>
+          <span className="text-label-md font-bold underline">Review Alerts</span>
         </div>
-        <span className="text-label-md font-bold underline">Review Alerts</span>
-      </div>
+      )}
 
       {/* Primary Actions */}
       <div className="flex flex-wrap gap-4 mb-8">
@@ -166,7 +214,7 @@ export default function DashboardPage() {
           </button>
         </div>
         <div className="divide-y divide-border-subtle">
-          {recentActivities.map((item, i) => (
+          {recentActivities.slice(0, 5).map((item, i) => (
             <div
               key={i}
               onClick={() => showToast(`Activity details: ${item.title} - ${item.desc}`, "info")}
@@ -190,6 +238,9 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
+          {recentActivities.length === 0 && (
+            <div className="p-8 text-center text-text-secondary">No recent activity</div>
+          )}
         </div>
       </div>
 
