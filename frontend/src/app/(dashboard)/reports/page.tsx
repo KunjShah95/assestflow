@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { reportService } from "@/services/report.service";
 import { Download, TrendingUp, AlertTriangle, DoorOpen, Car, Video, Camera, ArmchairIcon, Printer } from "lucide-react";
 
@@ -28,7 +28,7 @@ const idleIconMap: Record<string, typeof Camera> = {
 };
 
 export default function ReportsPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
   const [loading, setLoading] = useState(true);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState("PDF");
@@ -39,7 +39,8 @@ export default function ReportsPage() {
       try {
         const data = await reportService.kpi();
         setKpi(data);
-      } catch {
+      } catch (err) {
+        handleError(err, "Could not load report data");
         setKpi({ availableAssets: 128, allocatedAssets: 76, activeBookings: 9, maintenanceToday: 3, pendingTransfers: 3, overdueReturns: 2 });
       } finally {
         setLoading(false);

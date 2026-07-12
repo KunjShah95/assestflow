@@ -1,0 +1,506 @@
+[
+  {
+    "id": "FR-01.1a",
+    "name": "Signup returns 201 + JWT",
+    "status": "PASS",
+    "detail": "status=201"
+  },
+  {
+    "id": "FR-01.1b",
+    "name": "Signup assigns employee role",
+    "status": "PASS",
+    "detail": "role=employee"
+  },
+  {
+    "id": "FR-01.1c",
+    "name": "Duplicate email returns 409",
+    "status": "PASS",
+    "detail": "status=409"
+  },
+  {
+    "id": "FR-01.2a",
+    "name": "Login returns 200 + JWT",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-01.2b",
+    "name": "JWT payload has id, role",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-01.2c",
+    "name": "Invalid credentials returns 401",
+    "status": "PASS",
+    "detail": "status=401"
+  },
+  {
+    "id": "FR-01.3",
+    "name": "GET /auth/me returns profile",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-01.3b",
+    "name": "No token returns 401",
+    "status": "PASS",
+    "detail": "status=401"
+  },
+  {
+    "id": "FR-01.4a",
+    "name": "Employee cannot promote (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "FR-01.4b",
+    "name": "Admin can promote employee",
+    "status": "PASS",
+    "detail": "status=200"
+  },
+  {
+    "id": "FR-01.4c",
+    "name": "Admin cannot self-promote",
+    "status": "PASS",
+    "detail": "status=400"
+  },
+  {
+    "id": "FR-02.1a",
+    "name": "KPI endpoint returns 200",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-02.1b",
+    "name": "Has availableAssets metric",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-02.1c",
+    "name": "Has allocatedAssets metric",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-02.1d",
+    "name": "Has activeBookings metric",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-02.1e",
+    "name": "Has pendingTransfers metric",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-02.1f",
+    "name": "Has overdueReturns metric",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-02.1g",
+    "name": "Has maintenanceToday metric",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-03.1",
+    "name": "GET /departments lists departments",
+    "status": "PASS",
+    "detail": "count=8"
+  },
+  {
+    "id": "FR-03.2",
+    "name": "POST /departments creates dept",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-03.2b",
+    "name": "Employee cannot create dept (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "FR-03.3",
+    "name": "PATCH /departments/:id updates dept",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-03.5",
+    "name": "GET /categories lists categories",
+    "status": "PASS",
+    "detail": "count=8"
+  },
+  {
+    "id": "FR-03.6",
+    "name": "POST /categories creates category",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-03.8",
+    "name": "GET /employees lists all",
+    "status": "PASS",
+    "detail": "count=15"
+  },
+  {
+    "id": "FR-03.8b",
+    "name": "Employee list excludes password_hash",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-04.2a",
+    "name": "GET /assets lists assets",
+    "status": "PASS",
+    "detail": "count=17"
+  },
+  {
+    "id": "FR-04.2b",
+    "name": "Asset search by name works",
+    "status": "PASS",
+    "detail": "found=2"
+  },
+  {
+    "id": "FR-04.2c",
+    "name": "Asset filter by status works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-04.1a",
+    "name": "POST /assets registers asset",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-04.1b",
+    "name": "Auto-generates asset tag (AF-XXXX)",
+    "status": "PASS",
+    "detail": "tag=AF-0018"
+  },
+  {
+    "id": "FR-04.1c",
+    "name": "Default status is available",
+    "status": "PASS",
+    "detail": "status=available"
+  },
+  {
+    "id": "FR-04.1d",
+    "name": "Employee cannot register asset (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "FR-04.3",
+    "name": "GET /assets/:id returns detail",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-04.4",
+    "name": "PATCH /assets/:id updates metadata",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-05.1a",
+    "name": "POST /allocations creates allocation",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-05.1b",
+    "name": "Double allocation returns 409",
+    "status": "PASS",
+    "detail": "status=409"
+  },
+  {
+    "id": "FR-05.1c",
+    "name": "Conflict includes suggestion",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-05.2",
+    "name": "POST /allocations/transfer creates request",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-05.3",
+    "name": "PATCH transfer approve works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-05.4",
+    "name": "POST /allocations/:id/return works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-05.6",
+    "name": "GET /allocations lists allocations",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-06.1a",
+    "name": "POST /bookings creates booking",
+    "status": "FAIL",
+    "detail": ""
+  },
+  {
+    "id": "FR-06.1b",
+    "name": "Booking status is upcoming",
+    "status": "FAIL",
+    "detail": "status=undefined"
+  },
+  {
+    "id": "FR-06.1c",
+    "name": "Overlapping booking returns 409",
+    "status": "PASS",
+    "detail": "status=409"
+  },
+  {
+    "id": "FR-06.1d",
+    "name": "Exact boundary booking allowed",
+    "status": "FAIL",
+    "detail": "status=409"
+  },
+  {
+    "id": "FR-06.3",
+    "name": "GET /bookings/calendar/:assetId works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-06.4",
+    "name": "GET /bookings (mine) works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-07.1a",
+    "name": "POST /maintenance creates request",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-07.1b",
+    "name": "Default status is pending",
+    "status": "PASS",
+    "detail": "status=pending"
+  },
+  {
+    "id": "FR-07.1c",
+    "name": "Priority is set correctly",
+    "status": "PASS",
+    "detail": "priority=high"
+  },
+  {
+    "id": "FR-07.2b",
+    "name": "Employee cannot approve (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "FR-07.2a",
+    "name": "PATCH /maintenance/:id/approve works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-07.2c",
+    "name": "Asset status → under_maintenance",
+    "status": "PASS",
+    "detail": "status=under_maintenance"
+  },
+  {
+    "id": "FR-07.4a",
+    "name": "PATCH /maintenance/:id/resolve works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-07.4b",
+    "name": "Asset status → available after resolve",
+    "status": "PASS",
+    "detail": "status=available"
+  },
+  {
+    "id": "FR-07.3",
+    "name": "PATCH /maintenance/:id/reject works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-07.3b",
+    "name": "Asset status unchanged after reject",
+    "status": "PASS",
+    "detail": "status=available"
+  },
+  {
+    "id": "FR-07.5",
+    "name": "GET /maintenance lists requests",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-08.1",
+    "name": "POST /audits creates audit cycle",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-08.1b",
+    "name": "Cycle status is open",
+    "status": "PASS",
+    "detail": "status=open"
+  },
+  {
+    "id": "FR-08.1c",
+    "name": "Employee cannot create audit (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "FR-08.3",
+    "name": "POST /audits/:cycleId/mark records result",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-08.4",
+    "name": "GET /audits/:id/results returns results",
+    "status": "PASS",
+    "detail": "count=1"
+  },
+  {
+    "id": "FR-08.5",
+    "name": "PATCH /audits/:id/close closes cycle",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-08.6",
+    "name": "GET /audits lists cycles",
+    "status": "PASS",
+    "detail": "count=4"
+  },
+  {
+    "id": "FR-09.2",
+    "name": "GET /reports/idle-assets works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-09.3",
+    "name": "GET /reports/utilization works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-09.4",
+    "name": "GET /reports/booking-heatmap works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-09.5",
+    "name": "GET /reports/maintenance-frequency works",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-09.6",
+    "name": "Employee cannot access reports (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "FR-10.1a",
+    "name": "GET /notifications returns list",
+    "status": "PASS",
+    "detail": "count=0"
+  },
+  {
+    "id": "FR-10.2",
+    "name": "GET activity-log returns entries",
+    "status": "PASS",
+    "detail": "count=16"
+  },
+  {
+    "id": "FR-11.1",
+    "name": "GET /policies lists policies",
+    "status": "PASS",
+    "detail": "count=3"
+  },
+  {
+    "id": "FR-11.2",
+    "name": "POST /policies creates policy",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "FR-11.2b",
+    "name": "Employee cannot create policy (403)",
+    "status": "PASS",
+    "detail": "status=403"
+  },
+  {
+    "id": "NFR-8.1a",
+    "name": "Unauthenticated request blocked (401)",
+    "status": "PASS",
+    "detail": "status=401"
+  },
+  {
+    "id": "NFR-8.1b",
+    "name": "Invalid token rejected (401)",
+    "status": "PASS",
+    "detail": "status=401"
+  },
+  {
+    "id": "NFR-8.1c",
+    "name": "Role guard blocks unauthorized actions",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "id": "NFR-8.1d",
+    "name": "Zod validation rejects bad input",
+    "status": "PASS",
+    "detail": "status=500"
+  },
+  {
+    "id": "BR-01",
+    "name": "Double allocation prevention",
+    "status": "PASS",
+    "detail": "Tested in FR-05.1b (409 on conflict)"
+  },
+  {
+    "id": "BR-02",
+    "name": "Booking overlap prevention",
+    "status": "PASS",
+    "detail": "Tested in FR-06.1c (409 on overlap)"
+  },
+  {
+    "id": "BR-03",
+    "name": "Maintenance gate (status on approve)",
+    "status": "PASS",
+    "detail": "Tested in FR-07.2c (under_maintenance on approve)"
+  },
+  {
+    "id": "BR-04",
+    "name": "Role assignment lock (signup=employee)",
+    "status": "PASS",
+    "detail": "Tested in FR-01.1b (always employee)"
+  }
+]

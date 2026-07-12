@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { allocationService } from "@/services/allocation.service";
 import { Search, Bell, Laptop, AlertCircle, ChevronDown, Send } from "lucide-react";
 
@@ -15,7 +15,7 @@ interface HistoryEntry {
 }
 
 export default function AllocationPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading, setLoading] = useState(true);
   const [toEmployee, setToEmployee] = useState("");
@@ -41,7 +41,8 @@ export default function AllocationPage() {
           { date: "Mar 12, 2023", desc: "Allocated to Priya Shah", sub: "Dept: Engineering", active: true },
           { date: "Jan 04, 2023", desc: "Returned by Arjun Nair", sub: "Condition reported: Good", active: false },
         ]);
-      } catch {
+      } catch (err) {
+        handleError(err, "Could not load allocation history");
         setHistory([
           { date: "Mar 12, 2023", desc: "Allocated to Priya Shah", sub: "Dept: Engineering", active: true },
           { date: "Jan 04, 2023", desc: "Returned by Arjun Nair", sub: "Condition reported: Good", active: false },
@@ -78,7 +79,7 @@ export default function AllocationPage() {
       setToEmployee("");
       setReason("");
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Transfer request failed", "error");
+      handleError(err, "Transfer request failed");
     } finally {
       setSubmitting(false);
     }

@@ -3,11 +3,12 @@ import { env } from '../config/env.js';
 import { db } from '../config/db.js';
 import { employees } from '../models/schema.js';
 import { eq } from 'drizzle-orm';
+import { AppError } from '../utils/AppError.js';
 
 export async function authenticate(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return next(new AppError('Authentication required', 401));
   }
 
   try {
@@ -19,12 +20,12 @@ export async function authenticate(req, res, next) {
       .limit(1);
 
     if (!employee || employee.status !== 'active') {
-      return res.status(401).json({ error: 'Account not found or inactive' });
+      return next(new AppError('Account not found or inactive', 401));
     }
 
     req.user = { id: employee.id, email: employee.email, role: employee.role, name: employee.name, departmentId: employee.departmentId };
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    next(err);
   }
 }

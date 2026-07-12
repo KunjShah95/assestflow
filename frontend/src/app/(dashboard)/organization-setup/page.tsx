@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { departmentService } from "@/services/department.service";
 import { Search, Download, Plus, FolderTree, Edit2, Shield, MapPin, Users, Settings } from "lucide-react";
 
@@ -16,7 +16,7 @@ interface Department {
 }
 
 export default function OrganizationSetupPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Departments");
@@ -42,7 +42,8 @@ export default function OrganizationSetupPage() {
           { id: 1, name: "Engineering", head: "Aditi Rao", parent: "--", status: "Active", isChild: false },
           { id: 2, name: "Facilities", head: "Rohan Mehta", parent: "--", status: "Active", isChild: false },
         ]);
-      } catch {
+      } catch (err) {
+        handleError(err, "Could not load departments");
         setDepartments([
           { id: 1, name: "Engineering", head: "Aditi Rao", parent: "--", status: "Active", isChild: false },
           { id: 2, name: "Facilities", head: "Rohan Mehta", parent: "--", status: "Active", isChild: false },
@@ -82,7 +83,7 @@ export default function OrganizationSetupPage() {
       }));
       setDepartments(mapped);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to add department", "error");
+      handleError(err, "Failed to add department");
     }
   };
 

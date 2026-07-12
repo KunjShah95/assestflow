@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { reportService } from "@/services/report.service";
 import { activityService } from "@/services/activity.service";
 import type { ActivityLog } from "@/types/activity";
@@ -36,7 +36,7 @@ interface KpiData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading, setLoading] = useState(true);
   const [kpi, setKpi] = useState<KpiData | null>(null);
@@ -87,7 +87,7 @@ export default function DashboardPage() {
           setRecentActivities(mapped);
         }
       } catch (err) {
-        console.error("Failed to load dashboard data:", err);
+        handleError(err, "Could not load dashboard data");
         setKpi({ availableAssets: 128, allocatedAssets: 76, activeBookings: 9, pendingTransfers: 3, overdueReturns: 2 });
         setRecentActivities([
           { icon: "computer", iconBg: "bg-[#EEF2FF] text-[#4F46E5]", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },

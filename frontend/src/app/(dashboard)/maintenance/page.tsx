@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { maintenanceService } from "@/services/maintenance.service";
 import type { MaintenanceRequest } from "@/types/maintenance";
 import { Search, Plus, CheckCircle, Calendar, Wrench } from "lucide-react";
@@ -27,7 +27,7 @@ interface Column {
 }
 
 export default function MaintenancePage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +71,8 @@ export default function MaintenancePage() {
           { title: "In Progress", color: "bg-primary", cards: inProgress.length > 0 ? inProgress : [{ id: "AF-0078", title: "Forklift engine diagnostic", priority: "High", priorityColor: "bg-danger/10 text-danger", assignee: "Tech: R. Varma", avatar: "RV" }] },
           { title: "Resolved", color: "bg-success", faded: true, cards: resolved.length > 0 ? resolved : [{ id: "AF-897", title: "Printer Jam - parts ordered & replaced", completed: "Completed: 5 Jul" }] },
         ]);
-      } catch {
+      } catch (err) {
+        handleError(err, "Could not load maintenance requests");
         setColumns([
           { title: "Pending", color: "bg-warning", cards: [{ id: "AF-0062", title: "Projector bulb not turning on", priority: "High", priorityColor: "bg-danger/10 text-danger", date: "Reported: Today" }, { id: "AF-0112", title: "Leaking water cooler", priority: "Med", priorityColor: "bg-warning/10 text-warning", date: "Reported: Yesterday" }] },
           { title: "Approved", color: "bg-info", cards: [{ id: "AF-003", title: "AC unit noisy compressor", priority: "Low", priorityColor: "bg-surface-container-highest text-text-secondary", assignee: "Unassigned", borderLeft: true }] },
@@ -105,7 +106,7 @@ export default function MaintenancePage() {
       setIsModalOpen(false);
       setForm({ assetId: `AF-${Math.floor(100 + Math.random() * 900)}`, title: "", priority: "High" });
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to create request", "error");
+      handleError(err, "Failed to create request");
     }
   };
 

@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { showToast } = useToast();
+  const { handleError, handleSuccess, handleInfo } = useApiError();
   const { login, signup } = useAuth();
-  
+
   const [email, setEmail] = useState("admin@assetflow.com");
   const [password, setPassword] = useState("password123");
   const [name, setName] = useState("");
@@ -21,8 +19,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
-    showToast("Authenticating...", "info");
+
+    handleInfo("Authenticating...");
 
     try {
       if (isSignup) {
@@ -31,9 +29,11 @@ export default function LoginPage() {
         setError("Account created. Login after admin promotes you.");
       } else {
         await login(email, password);
+        handleSuccess("Signed in successfully!");
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const message = handleError(err, isSignup ? "Signup failed" : "Login failed");
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ export default function LoginPage() {
   return (
     <div className="bg-[#F8FAFC] min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-[16px] shadow-sm p-8 flex flex-col items-center animate-fade-in">
-        
+
         <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
           <span className="text-[18px] font-bold text-[#0F172A]">AF</span>
         </div>
@@ -69,7 +69,7 @@ export default function LoginPage() {
               />
             </div>
           )}
-          
+
           <div className="flex flex-col gap-1">
             <label className="text-[13px] font-bold text-[#475569]" htmlFor="email">
               Email

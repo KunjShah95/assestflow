@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { assetService } from "@/services/asset.service";
 import type { Asset, AssetCategory } from "@/types/asset";
 import { Search, Plus, ChevronDown, FilterX, ArrowDown, Package, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
@@ -29,7 +29,7 @@ const statusToColor: Record<string, string> = {
 };
 
 export default function AssetsPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [assets, setAssets] = useState<AssetItem[]>([]);
   const [categories, setCategories] = useState<string[]>(["All"]);
@@ -71,8 +71,7 @@ export default function AssetsPage() {
         setAssets(mapped);
         setCategories(["All", ...new Set((cats || []).map((c: AssetCategory) => c.name))]);
       } catch (err) {
-        console.error("Failed to load assets:", err);
-        showToast("Could not load assets from server", "error");
+        handleError(err, "Could not load assets from server");
       } finally {
         setLoading(false);
       }
@@ -135,7 +134,7 @@ export default function AssetsPage() {
         tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
       });
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to register asset", "error");
+      handleError(err, "Failed to register asset");
     }
   };
 

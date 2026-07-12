@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { bookingService } from "@/services/booking.service";
 import { Calendar, Plus, Users, AlertTriangle, PlusCircle } from "lucide-react";
 
@@ -16,7 +16,7 @@ interface BookingSlot {
 }
 
 export default function BookingPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("Today");
@@ -54,7 +54,8 @@ export default function BookingPage() {
           { id: "b1", title: "Booked – Procurement Team", time: "9:00 to 10:30", top: 0, height: 90, type: "booked" },
           { id: "b2", title: "Requested 9:30 to 10:30 – conflict", time: "9:30 to 10:30", top: 30, height: 60, type: "conflict" },
         ]);
-      } catch {
+      } catch (err) {
+        handleError(err, "Could not load bookings");
         setSlots([
           { id: "b1", title: "Booked – Procurement Team", time: "9:00 to 10:30", top: 0, height: 90, type: "booked" },
           { id: "b2", title: "Requested 9:30 to 10:30 – conflict", time: "9:30 to 10:30", top: 30, height: 60, type: "conflict" },
@@ -103,7 +104,7 @@ export default function BookingPage() {
       showToast(`Confirmed slot booking: ${bookingForm.title} (${bookingForm.timeRange})`, "success");
       setIsBookModalOpen(false);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Booking failed", "error");
+      handleError(err, "Booking failed");
     }
   };
 

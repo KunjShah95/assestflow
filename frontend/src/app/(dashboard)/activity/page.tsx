@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { activityService } from "@/services/activity.service";
 import type { ActivityLog } from "@/types/activity";
 import { Search, Laptop, ArrowLeftRight, Wrench, ShieldCheck, Calendar, Verified, UserPlus, Settings, PlusCircle, Info, History } from "lucide-react";
@@ -46,7 +46,7 @@ const iconComponentMap: Record<string, typeof Laptop> = {
 };
 
 export default function ActivityPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string>("All Logs");
@@ -83,7 +83,7 @@ export default function ActivityPage() {
           { id: "log-2", category: "Maintenance", icon: "build", iconColor: "bg-warning/10 text-warning", title: "Maintenance Ticket AF-0062 Flagged", desc: "Projector 4K bulb issue", time: "09:15 AM", user: "System" },
         ]);
       } catch (err) {
-        console.error("Failed to load activity logs:", err);
+        handleError(err, "Failed to load activity logs");
         setLogs([
           { id: "log-1", category: "Allocation", icon: "laptop_mac", iconColor: "bg-primary/10 text-primary", title: "Asset AF-0114 Allocated", desc: "Assigned to Priya Shah", time: "10:42 AM", user: "Admin: R. Nair" },
           { id: "log-2", category: "Maintenance", icon: "build", iconColor: "bg-warning/10 text-warning", title: "Maintenance Ticket AF-0062 Flagged", desc: "Projector 4K bulb issue", time: "09:15 AM", user: "System" },

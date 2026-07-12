@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
-import { setToken, clearToken } from '@/lib/api-client';
+import { setToken, clearToken, setAuthExpiredHandler } from '@/lib/api-client';
 import type { User } from '@/types/common';
 
 interface AuthContextValue {
@@ -21,6 +21,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const logout = useCallback(() => {
+    clearToken();
+    setUser(null);
+    router.push('/');
+  }, [router]);
+
+  useEffect(() => {
+    setAuthExpiredHandler(() => {
+      setUser(null);
+      router.push('/');
+    });
+    return () => setAuthExpiredHandler(null);
+  }, [router]);
+
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!token) {
@@ -29,7 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     authService.me()
       .then((u) => setUser(u))
-      .catch(() => setUser(null))
+      .catch(() => {
+        clearToken();
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -43,12 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(async (data: { email: string; password: string; name: string }) => {
     await authService.signup(data);
   }, []);
-
-  const logout = useCallback(() => {
-    clearToken();
-    setUser(null);
-    router.push('/');
-  }, [router]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, signup, logout }}>

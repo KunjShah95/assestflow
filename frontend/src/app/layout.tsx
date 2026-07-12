@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/components/ToastProvider";
 import Navbar from "@/components/Navbar";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,7 +33,7 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <Navbar />
-              {children}
+              <ErrorBoundary>{children}</ErrorBoundary>
             </ToastProvider>
           </AuthProvider>
         </div>

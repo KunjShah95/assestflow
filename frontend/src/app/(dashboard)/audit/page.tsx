@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useApiError } from "@/hooks/useApiError";
 import { auditService } from "@/services/audit.service";
 import type { AuditResult } from "@/types/audit";
 import { Download, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
@@ -24,7 +24,7 @@ const statusIconMap: Record<string, typeof CheckCircle> = {
 };
 
 export default function AuditPage() {
-  const { showToast } = useToast();
+  const { showToast, handleError } = useApiError();
 
   const [loading] = useState(true);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -54,10 +54,10 @@ export default function AuditPage() {
                 rowBg: r.status === "verified" ? "" : r.status === "missing" ? "bg-error/5" : "bg-warning/5",
               })));
             }
-          } catch (err) { console.error("Failed to load audit results:", err); }
+          } catch (err) { handleError(err, "Failed to load audit results"); }
         }
       } catch (err) {
-        console.error("Failed to load audit cycles:", err);
+        handleError(err, "Failed to load audit cycles");
       }
     }
     fetchData();
