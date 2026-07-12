@@ -179,7 +179,7 @@ export default function AssetsPage() {
           className="bg-primary hover:bg-surface-tint text-on-primary text-label-md px-6 py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg flex items-center gap-2 transition-all cursor-pointer w-full md:w-auto justify-center"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
-          + Register Asset
+          Register Asset
         </button>
       </div>
 

@@ -110,37 +110,22 @@ export default function AuditPage() {
                   </td>
                   <td className="py-4 px-6 font-semibold text-text-secondary">{item.reportedLocation}</td>
                   <td className="py-4 px-6">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleVerificationChange(item.id, 'Verified')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase transition-all cursor-pointer border ${
-                          item.verification === 'Verified'
-                            ? 'bg-success text-on-primary border-transparent'
-                            : 'bg-surface-container-low text-text-secondary border-border-subtle hover:bg-surface-container-high'
-                        }`}
-                      >
-                        Verified
-                      </button>
-                      <button
-                        onClick={() => handleVerificationChange(item.id, 'Missing')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase transition-all cursor-pointer border ${
-                          item.verification === 'Missing'
-                            ? 'bg-danger text-on-primary border-transparent'
-                            : 'bg-surface-container-low text-text-secondary border-border-subtle hover:bg-surface-container-high'
-                        }`}
-                      >
-                        Missing
-                      </button>
-                      <button
-                        onClick={() => handleVerificationChange(item.id, 'Damaged')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase transition-all cursor-pointer border ${
-                          item.verification === 'Damaged'
-                            ? 'bg-warning text-text-primary border-transparent'
-                            : 'bg-surface-container-low text-text-secondary border-border-subtle hover:bg-surface-container-high'
-                        }`}
-                      >
-                        Damaged
-                      </button>
+                    <div className="flex justify-center">
+                      {item.verification === 'Verified' && (
+                        <span className="px-3 py-1.5 rounded-full text-xs font-bold uppercase bg-success text-on-primary border border-transparent">
+                          Verified
+                        </span>
+                      )}
+                      {item.verification === 'Missing' && (
+                        <span className="px-3 py-1.5 rounded-full text-xs font-bold uppercase bg-danger text-on-primary border border-transparent">
+                          Missing
+                        </span>
+                      )}
+                      {item.verification === 'Damaged' && (
+                        <span className="px-3 py-1.5 rounded-full text-xs font-bold uppercase bg-warning text-text-primary border border-transparent">
+                          Damaged
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>

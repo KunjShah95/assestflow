@@ -230,13 +230,6 @@ export default function OrganizationSetupPage() {
               </tbody>
             </table>
           </div>
-
-          {/* Bottom notice for Screen 3 */}
-          {tab === 'departments' && (
-            <div className="bg-surface-container-low px-6 py-4 border-t border-border-subtle text-body-sm text-text-secondary italic">
-              Deleting a department here also clears its parent in Screen 5 & 6
-            </div>
-          )}
         </div>
       ) : (
         /* "+ Add" Form Panel */

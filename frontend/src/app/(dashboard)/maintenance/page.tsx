@@ -216,11 +216,6 @@ export default function MaintenancePage() {
           })}
         </div>
       </div>
-
-      {/* Explanatory Caption at Bottom */}
-      <footer className="mt-6 bg-surface-container-low border border-border-subtle rounded-xl px-6 py-4 text-body-sm text-text-secondary leading-relaxed font-medium">
-        Approving a card moves the asset to under maintenance, resolving returns it to available.
-      </footer>
     </div>
   );
 }

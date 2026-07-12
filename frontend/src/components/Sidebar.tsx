@@ -6,20 +6,20 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Package, ArrowRightLeft, CalendarCheck, Wrench,
-  Shield, BarChart3, History, Settings, ChevronLeft, ChevronRight,
+  Shield, BarChart3, Bell, Settings, ChevronLeft, ChevronRight,
   LogOut
 } from 'lucide-react';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Organization setup', href: '/organization-setup', icon: Settings },
   { label: 'Assets', href: '/assets', icon: Package },
-  { label: 'Allocation', href: '/allocation', icon: ArrowRightLeft },
-  { label: 'Booking', href: '/booking', icon: CalendarCheck },
+  { label: 'Allocation & Transfer', href: '/allocation', icon: ArrowRightLeft },
+  { label: 'Resource Booking', href: '/booking', icon: CalendarCheck },
   { label: 'Maintenance', href: '/maintenance', icon: Wrench },
   { label: 'Audit', href: '/audit', icon: Shield },
   { label: 'Reports', href: '/reports', icon: BarChart3 },
-  { label: 'Activity', href: '/activity', icon: History },
-  { label: 'Settings', href: '/organization-setup', icon: Settings },
+  { label: 'Notifications', href: '/activity', icon: Bell },
 ];
 
 export default function Sidebar({
