@@ -1,125 +1,215 @@
+"use client";
+
+import React, { useState } from "react";
+import { useToast } from "@/components/ToastProvider";
+
+interface LogEntry {
+  id: string;
+  category: "Security" | "System" | "Maintenance" | "Allocation";
+  icon: string;
+  iconColor: string;
+  title: string;
+  desc: string;
+  time: string;
+  user: string;
+}
+
 export default function ActivityPage() {
-  const logs = [
+  const { showToast } = useToast();
+
+  const [activeFilter, setActiveFilter] = useState<string>("All Logs");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [logs, setLogs] = useState<LogEntry[]>([
     {
+      id: "log-1",
+      category: "Allocation",
+      icon: "laptop_mac",
+      iconColor: "bg-primary/10 text-primary",
+      title: "Asset AF-0114 Allocated",
+      desc: "Assigned to Priya Shah (Engineering Department)",
+      time: "10:42 AM",
+      user: "Admin: R. Nair",
+    },
+    {
+      id: "log-2",
+      category: "Maintenance",
+      icon: "build",
+      iconColor: "bg-warning/10 text-warning",
+      title: "Maintenance Ticket AF-0062 Flagged",
+      desc: "Projector 4K bulb issue reported in HQ Floor 2",
+      time: "09:15 AM",
+      user: "System Automations",
+    },
+    {
+      id: "log-3",
+      category: "Security",
+      icon: "shield_person",
+      iconColor: "bg-danger/10 text-danger",
+      title: "Audit Discrepancy Recorded",
+      desc: "Office Chair AF-9921 flagged as missing during Q3 Audit",
+      time: "Yesterday, 4:30 PM",
+      user: "Auditor: A. Rao",
+    },
+    {
+      id: "log-4",
+      category: "System",
+      icon: "settings",
+      iconColor: "bg-info/10 text-info",
+      title: "Organization Hierarchy Updated",
+      desc: "Added Field Ops (West) sub-department",
+      time: "Yesterday, 1:15 PM",
+      user: "Admin: R. Nair",
+    },
+    {
+      id: "log-5",
+      category: "Allocation",
       icon: "swap_horiz",
-      iconBg: "bg-secondary-container",
-      iconColor: "text-info",
-      title: <><span className="font-medium">Laptop AF-0114</span> assigned to <span className="font-medium">Priya Shah</span></>,
-      sub: "Asset Allocation",
-      time: "2m ago",
-      bg: "",
+      iconColor: "bg-primary/10 text-primary",
+      title: "Transfer Completed",
+      desc: "Cisco Router X1 transferred to Mumbai Server Room 1",
+      time: "6 Jul, 2026",
+      user: "Logistics Team",
     },
-    {
-      icon: "check_circle",
-      iconBg: "bg-tertiary-container/20",
-      iconColor: "text-success",
-      title: <>Maintenance request <span className="font-medium text-info">AF-0055</span> approved</>,
-      sub: "Approval Flow",
-      time: "18m ago",
-      bg: "",
-    },
-    {
-      icon: "event_seat",
-      iconBg: "bg-surface-container-high",
-      iconColor: "text-text-secondary",
-      title: "Booking confirmed : Room B2 : 2:00 to 3:00 PM",
-      sub: "Resource Booking",
-      time: "1h ago",
-      bg: "",
-    },
-    {
-      icon: "check_circle",
-      iconBg: "bg-tertiary-container/20",
-      iconColor: "text-success",
-      title: "Transfer approved : AF-0033 to facilities dept",
-      sub: "Approval Flow",
-      time: "3h ago",
-      bg: "",
-    },
-    {
-      icon: "warning",
-      iconBg: "bg-error/10",
-      iconColor: "text-error",
-      title: <span className="font-medium">Overdue return : AF-0021 was due 3 days ago</span>,
-      sub: "System Alert",
-      subColor: "text-error",
-      time: "1d ago",
-      timeColor: "text-error font-medium",
-      bg: "bg-error-container/20",
-    },
-    {
-      icon: "assignment_late",
-      iconBg: "bg-warning/20",
-      iconColor: "text-warning",
-      title: <>Audit discrepancy flagged : <span className="font-medium">AF-0088</span> damaged</>,
-      sub: "Audit Report",
-      subColor: "text-warning",
-      time: "2d ago",
-      bg: "bg-warning/10",
-    },
-  ];
+  ]);
+
+  const filteredLogs = logs.filter((log) => {
+    const matchesFilter =
+      activeFilter === "All Logs" || log.category === activeFilter;
+    const matchesSearch =
+      log.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.user.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const handleLoadMore = () => {
+    const moreLogs: LogEntry[] = [
+      {
+        id: `log-${Date.now()}-1`,
+        category: "System",
+        icon: "cloud_sync",
+        iconColor: "bg-info/10 text-info",
+        title: "Automated Backup Completed",
+        desc: "Snapshot #4492 saved to secure enterprise vault",
+        time: "5 Jul, 2026",
+        user: "System Automations",
+      },
+      {
+        id: `log-${Date.now()}-2`,
+        category: "Security",
+        icon: "verified_user",
+        iconColor: "bg-success/10 text-success",
+        title: "Security Token Rotated",
+        desc: "API gateway authentication certificate renewed successfully",
+        time: "3 Jul, 2026",
+        user: "Security Ops",
+      },
+    ];
+    setLogs([...logs, ...moreLogs]);
+    showToast("Loaded historical activity logs", "info");
+  };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
-      {/* Desktop Header */}
-      <header className="bg-surface-container-lowest border-b border-border-subtle px-container py-standard sticky top-0 z-30 hidden md:flex justify-between items-center">
+    <div className="flex-1 overflow-y-auto bg-surface p-container animate-fade-in">
+      {/* Header */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-headline-lg text-text-primary">Activity Logs &amp; Notifications</h1>
-          <p className="text-body-sm text-text-secondary mt-1">Chronological audit trail of system events.</p>
+          <h1 className="text-headline-lg text-text-primary">
+            Activity &amp; Audit Trail
+          </h1>
+          <p className="text-body-sm text-text-secondary mt-1">
+            Real-time chronological log of system actions, allocations, and alerts.
+          </p>
         </div>
-        <div className="flex items-center gap-standard">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">search</span>
-            <input className="pl-10 pr-4 py-2 bg-surface-container-low border border-border-subtle rounded-md text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-shadow w-64" placeholder="Search logs..." type="text" />
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-low border border-border-subtle rounded-md text-label-md text-text-primary hover:bg-surface-container-high transition-colors">
-            <span className="material-symbols-outlined text-sm">filter_list</span>
-            Filter
-          </button>
+        <div className="relative w-full md:w-72">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[20px]">
+            search
+          </span>
+          <input
+            className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-border-subtle rounded text-body-sm text-text-primary focus:border-primary outline-none"
+            placeholder="Search activity trail..."
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-      </header>
+      </div>
 
-      <div className="flex-1 overflow-y-auto p-container max-w-5xl mx-auto w-full">
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 mb-comfortable overflow-x-auto pb-2">
-          {["All", "Alerts", "Approvals", "Bookings"].map((filter, i) => (
+      {/* Filter Pills */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 pb-4 border-b border-border-subtle">
+        {["All Logs", "Allocation", "Maintenance", "Security", "System"].map(
+          (cat) => (
             <button
-              key={filter}
-              className={`px-4 py-1.5 rounded-full text-label-md whitespace-nowrap transition-colors ${
-                i === 0
-                  ? "bg-primary text-on-primary shadow-sm"
-                  : "bg-surface-container-low text-text-secondary border border-border-subtle hover:bg-surface-container-high"
+              key={cat}
+              onClick={() => {
+                setActiveFilter(cat);
+                showToast(`Filtered by: ${cat}`, "info");
+              }}
+              className={`px-4 py-1.5 rounded-full text-label-md transition-all ${
+                activeFilter === cat
+                  ? "bg-primary text-on-primary font-bold shadow-sm"
+                  : "bg-surface-container-lowest border border-border-subtle text-text-primary hover:bg-surface-container"
               }`}
             >
-              {filter}
+              {cat}
             </button>
-          ))}
-        </div>
+          )
+        )}
+      </div>
 
-        {/* Activity Feed */}
-        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg shadow-sm">
-          {logs.map((log, i) => (
-            <div
-              key={i}
-              className={`flex gap-4 p-4 border-b border-border-subtle last:border-b-0 hover:bg-surface-container-low transition-colors group ${log.bg}`}
-            >
-              <div className={`w-10 h-10 rounded-full ${log.iconBg} flex items-center justify-center shrink-0`}>
-                <span className={`material-symbols-outlined ${log.iconColor}`}>{log.icon}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-body-md text-text-primary truncate">{log.title}</p>
-                <p className={`text-body-sm mt-0.5 ${"subColor" in log ? log.subColor : "text-text-secondary"}`}>{log.sub}</p>
-              </div>
-              <div className="text-right shrink-0">
-                <span className={`text-mono-data ${"timeColor" in log ? log.timeColor : "text-text-secondary"}`}>{log.time}</span>
-              </div>
+      {/* Activity List */}
+      <div className="bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden shadow-sm">
+        <div className="divide-y divide-border-subtle">
+          {filteredLogs.length === 0 ? (
+            <div className="p-8 text-center text-text-secondary">
+              No activity records match the selected filter or query.
             </div>
-          ))}
+          ) : (
+            filteredLogs.map((item) => (
+              <div
+                key={item.id}
+                onClick={() =>
+                  showToast(`Log detail: ${item.title} (${item.user})`, "info")
+                }
+                className="p-comfortable flex items-start gap-4 hover:bg-surface-container-low transition-colors cursor-pointer group"
+              >
+                <div
+                  className={`w-10 h-10 rounded-full ${item.iconColor} flex items-center justify-center shrink-0 mt-0.5`}
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {item.icon}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                    <span className="text-label-md font-bold text-text-primary group-hover:text-primary transition-colors">
+                      {item.title}
+                    </span>
+                    <span className="text-mono-data text-text-secondary text-xs">
+                      {item.time}
+                    </span>
+                  </div>
+                  <p className="text-body-sm text-text-secondary mb-1">
+                    {item.desc}
+                  </p>
+                  <span className="inline-block text-[11px] font-semibold text-text-secondary/80 bg-surface-container px-2 py-0.5 rounded">
+                    {item.user}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        <div className="mt-4 text-center">
-          <button className="px-4 py-2 text-primary text-label-md hover:bg-surface-container-low rounded-md transition-colors">
-            Load More Activity
+        {/* Load More Footer */}
+        <div className="p-4 bg-surface-container-low border-t border-border-subtle text-center">
+          <button
+            onClick={handleLoadMore}
+            className="text-label-md text-primary hover:underline font-semibold flex items-center justify-center gap-1 mx-auto"
+          >
+            <span className="material-symbols-outlined text-[18px]">history</span>
+            Load Historical Activity
           </button>
         </div>
       </div>

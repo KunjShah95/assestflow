@@ -1,22 +1,112 @@
+"use client";
+
+import React, { useState } from "react";
+import Modal from "@/components/Modal";
+import { useToast } from "@/components/ToastProvider";
+
+interface AuditItem {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+  statusIcon: string;
+  statusColor: string;
+  rowBg: string;
+}
+
 export default function AuditPage() {
-  const auditItems = [
-    { id: "AF-003", name: "Dell laptop", location: "Desk E12", status: "Verified", statusIcon: "check_circle", statusColor: "text-success bg-success/10", rowBg: "" },
-    { id: "AF-9921", name: "Office chair", location: "Desk E14", status: "Missing", statusIcon: "error", statusColor: "text-danger bg-danger/10", rowBg: "bg-error/5" },
-    { id: "AF-9838", name: "Monitor", location: "Desk E15", status: "Damaged", statusIcon: "warning", statusColor: "text-warning bg-warning/10", rowBg: "bg-warning/5" },
-    { id: "AF-004", name: "MacBook Pro", location: "Desk E16", status: "Verified", statusIcon: "check_circle", statusColor: "text-success bg-success/10", rowBg: "" },
-  ];
+  const { showToast } = useToast();
+
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [auditItems, setAuditItems] = useState<AuditItem[]>([
+    {
+      id: "AF-003",
+      name: "Dell laptop",
+      location: "Desk E12",
+      status: "Verified",
+      statusIcon: "check_circle",
+      statusColor: "text-success bg-success/10",
+      rowBg: "",
+    },
+    {
+      id: "AF-9921",
+      name: "Office chair",
+      location: "Desk E14",
+      status: "Missing",
+      statusIcon: "error",
+      statusColor: "text-danger bg-danger/10",
+      rowBg: "bg-error/5",
+    },
+    {
+      id: "AF-9838",
+      name: "Monitor",
+      location: "Desk E15",
+      status: "Damaged",
+      statusIcon: "warning",
+      statusColor: "text-warning bg-warning/10",
+      rowBg: "bg-warning/5",
+    },
+    {
+      id: "AF-004",
+      name: "MacBook Pro",
+      location: "Desk E16",
+      status: "Verified",
+      statusIcon: "check_circle",
+      statusColor: "text-success bg-success/10",
+      rowBg: "",
+    },
+  ]);
+
+  const handleToggleVerify = (id: string) => {
+    setAuditItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              status: "Verified",
+              statusIcon: "check_circle",
+              statusColor: "text-success bg-success/10",
+              rowBg: "",
+            }
+          : item
+      )
+    );
+    showToast(`Marked ${id} as Verified`, "success");
+  };
+
+  const handleExportAudit = () => {
+    showToast("Exporting Q3 Audit Report (CSV)...", "info");
+  };
+
+  const handleSaveProgress = () => {
+    showToast("Q3 Audit progress saved successfully!", "success");
+  };
+
+  const handleConfirmCloseCycle = () => {
+    showToast("Q3 Audit Cycle Closed and locked for compliance reporting.", "success");
+    setIsCloseModalOpen(false);
+  };
 
   return (
     <div className="flex-1 overflow-y-auto bg-background p-container animate-fade-in">
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-headline-lg text-text-primary">Q3 Audit: Engineering Dept – 1-15 Jul</h2>
-          <p className="text-body-md text-text-secondary mt-1">Auditors: A. Rao, S. Iqbal</p>
+          <h2 className="text-headline-lg text-text-primary">
+            Q3 Audit: Engineering Dept – 1-15 Jul
+          </h2>
+          <p className="text-body-md text-text-secondary mt-1">
+            Auditors: A. Rao, S. Iqbal
+          </p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 border border-border-subtle text-text-primary rounded bg-surface-container-lowest hover:bg-surface-container-low transition-colors text-label-md flex items-center gap-2">
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
+          <button
+            onClick={handleExportAudit}
+            className="px-4 py-2 border border-border-subtle text-text-primary rounded bg-surface-container-lowest hover:bg-surface-container-low transition-colors text-label-md flex items-center gap-2 shadow-sm font-medium"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              download
+            </span>
             Export
           </button>
         </div>
@@ -36,21 +126,34 @@ export default function AuditPage() {
             </thead>
             <tbody className="text-body-md divide-y divide-border-subtle">
               {auditItems.map((item) => (
-                <tr key={item.id} className={`hover:bg-surface-container transition-colors ${item.rowBg}`}>
+                <tr
+                  key={item.id}
+                  className={`hover:bg-surface-container transition-colors ${item.rowBg}`}
+                >
                   <td className="px-6 py-3 text-mono-data text-text-primary">
                     <div className="font-medium">{item.id}</div>
                     <div className="text-text-secondary">{item.name}</div>
                   </td>
                   <td className="px-6 py-3 text-text-secondary">{item.location}</td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md ${item.statusColor}`}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{item.statusIcon}</span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md ${item.statusColor}`}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                        {item.statusIcon}
+                      </span>
                       {item.status}
                     </span>
                   </td>
                   <td className="px-6 py-3">
-                    <button className="text-text-secondary hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_vert</span>
+                    <button
+                      onClick={() => handleToggleVerify(item.id)}
+                      className="text-text-secondary hover:text-primary transition-colors p-1.5 rounded hover:bg-surface-container-low"
+                      title="Verify Asset"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                        check_circle
+                      </span>
                     </button>
                   </td>
                 </tr>
@@ -72,14 +175,62 @@ export default function AuditPage() {
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-4">
-          <button className="px-6 py-2 border border-border-subtle text-text-primary rounded bg-surface-container-lowest hover:bg-surface-container-low transition-colors text-label-md">
+          <button
+            onClick={handleSaveProgress}
+            className="px-6 py-2.5 border border-border-subtle text-text-primary rounded bg-surface-container-lowest hover:bg-surface-container-low transition-colors text-label-md font-medium"
+          >
             Save Progress
           </button>
-          <button className="px-6 py-2 bg-primary text-on-primary rounded hover:bg-primary/90 transition-colors text-label-md">
+          <button
+            onClick={() => setIsCloseModalOpen(true)}
+            className="px-6 py-2.5 bg-primary text-on-primary rounded hover:bg-primary/90 transition-colors text-label-md font-medium shadow-sm"
+          >
             Close Audit Cycle
           </button>
         </div>
       </div>
+
+      {/* Close Audit Cycle Confirmation Modal */}
+      <Modal
+        isOpen={isCloseModalOpen}
+        onClose={() => setIsCloseModalOpen(false)}
+        title="Close & Lock Audit Cycle"
+      >
+        <div className="space-y-4">
+          <p className="text-body-md text-text-primary">
+            Are you sure you want to finalize and close the{" "}
+            <strong>Q3 Audit: Engineering Dept</strong> cycle?
+          </p>
+          <div className="bg-surface-container-low p-4 rounded border border-border-subtle space-y-2 text-body-sm">
+            <div className="flex justify-between">
+              <span>Verified Assets:</span>
+              <span className="font-semibold text-success">
+                {auditItems.filter((i) => i.status === "Verified").length}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Flagged Discrepancies:</span>
+              <span className="font-semibold text-warning">
+                {auditItems.filter((i) => i.status !== "Verified").length}
+              </span>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-3">
+            <button
+              onClick={() => setIsCloseModalOpen(false)}
+              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmCloseCycle}
+              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90 font-medium"
+            >
+              Confirm &amp; Finalize
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

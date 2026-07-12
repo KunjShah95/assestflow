@@ -1,9 +1,43 @@
+"use client";
+
+import React, { useState } from "react";
+import Modal from "@/components/Modal";
+import { useToast } from "@/components/ToastProvider";
+
+interface MaintenanceCard {
+  id: string;
+  title: string;
+  priority?: string;
+  priorityColor?: string;
+  date?: string;
+  assignee?: string;
+  avatar?: string;
+  borderLeft?: boolean;
+  completed?: string;
+}
+
+interface Column {
+  title: string;
+  color: string;
+  faded?: boolean;
+  cards: MaintenanceCard[];
+}
+
 export default function MaintenancePage() {
-  const columns = [
+  const { showToast } = useToast();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form, setForm] = useState({
+    assetId: "AF-0125",
+    title: "",
+    priority: "High",
+  });
+
+  const [columns, setColumns] = useState<Column[]>([
     {
       title: "Pending",
       color: "bg-warning",
-      count: 2,
       cards: [
         { id: "AF-0062", title: "Projector bulb not turning on", priority: "High", priorityColor: "bg-danger/10 text-danger", date: "Reported: Today" },
         { id: "AF-0112", title: "Leaking water cooler in Breakroom B", priority: "Med", priorityColor: "bg-warning/10 text-warning", date: "Reported: Yesterday" },
@@ -12,7 +46,6 @@ export default function MaintenancePage() {
     {
       title: "Approved",
       color: "bg-info",
-      count: 1,
       cards: [
         {
           id: "AF-003",
@@ -27,7 +60,6 @@ export default function MaintenancePage() {
     {
       title: "In Progress",
       color: "bg-primary",
-      count: 1,
       cards: [
         {
           id: "AF-0078",
@@ -42,14 +74,48 @@ export default function MaintenancePage() {
     {
       title: "Resolved",
       color: "bg-success",
-      count: 2,
       faded: true,
       cards: [
         { id: "AF-897", title: "Printer Jam - parts ordered & replaced", completed: "Completed: 5 Jul" },
         { id: "AF-873", title: "Chair repair - caster replacement", completed: "Completed: 7 Jul" },
       ],
     },
-  ];
+  ]);
+
+  const handleCreateRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) {
+      showToast("Please describe the maintenance issue", "error");
+      return;
+    }
+
+    const priorityColor =
+      form.priority === "High"
+        ? "bg-danger/10 text-danger"
+        : form.priority === "Med"
+        ? "bg-warning/10 text-warning"
+        : "bg-surface-container-highest text-text-secondary";
+
+    const newCard: MaintenanceCard = {
+      id: form.assetId,
+      title: form.title,
+      priority: form.priority,
+      priorityColor,
+      date: "Reported: Just now",
+    };
+
+    setColumns(
+      columns.map((col) =>
+        col.title === "Pending"
+          ? { ...col, cards: [newCard, ...col.cards] }
+          : col
+      )
+    );
+
+    showToast(`Maintenance request logged for ${form.assetId}`, "success");
+    setIsModalOpen(false);
+    setForm({ assetId: `AF-${Math.floor(100 + Math.random() * 900)}`, title: "", priority: "High" });
+  };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-surface animate-fade-in">
@@ -57,15 +123,33 @@ export default function MaintenancePage() {
       <div className="px-container py-comfortable border-b border-border-subtle bg-surface-container-lowest shrink-0 flex justify-between items-center">
         <div>
           <h1 className="text-headline-lg text-text-primary">Maintenance Board</h1>
-          <p className="text-body-sm text-text-secondary mt-1">Track and manage asset repairs and servicing</p>
+          <p className="text-body-sm text-text-secondary mt-1">
+            Track and manage asset repairs and servicing
+          </p>
         </div>
         <div className="flex gap-standard">
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" style={{ fontSize: 18 }}>search</span>
-            <input className="pl-10 pr-4 py-2 border border-border-subtle rounded bg-surface-container-lowest text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64 transition-shadow" placeholder="Search tasks..." type="text" />
+            <span
+              className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
+              style={{ fontSize: 18 }}
+            >
+              search
+            </span>
+            <input
+              className="pl-10 pr-4 py-2 border border-border-subtle rounded bg-surface-container-lowest text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64 transition-shadow"
+              placeholder="Search tasks..."
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <button className="bg-primary text-on-primary px-4 py-2 rounded text-label-md flex items-center gap-2 hover:bg-primary-container transition-colors">
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary text-on-primary px-4 py-2 rounded text-label-md flex items-center gap-2 hover:bg-primary/90 transition-colors font-medium shadow-sm"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              add
+            </span>
             New Request
           </button>
         </div>
@@ -74,73 +158,207 @@ export default function MaintenancePage() {
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-container">
         <div className="flex gap-container h-full min-w-max">
-          {columns.map((col) => (
-            <div key={col.title} className={`w-80 flex flex-col bg-surface-container-low rounded-lg p-standard border border-border-subtle shrink-0 ${col.faded ? "opacity-70 hover:opacity-100 transition-opacity" : ""}`} style={{ minHeight: "calc(100vh - 200px)" }}>
-              {/* Column Header */}
-              <div className="flex justify-between items-center mb-standard">
-                <h2 className="text-headline-sm text-text-primary flex items-center gap-2 uppercase tracking-wide">
-                  <span className={`w-2 h-2 rounded-full ${col.color}`} />
-                  {col.title}
-                </h2>
-                <span className="text-mono-data bg-surface-container-highest px-2 py-1 rounded text-text-secondary">{col.count}</span>
-              </div>
+          {columns.map((col) => {
+            const visibleCards = col.cards.filter(
+              (c) =>
+                c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.id.toLowerCase().includes(searchQuery.toLowerCase())
+            );
 
-              {/* Cards */}
-              <div className="flex flex-col gap-standard overflow-y-auto pr-1 pb-4">
-                {col.cards.map((card) => {
-                  if ("completed" in card) {
-                    // Resolved card
-                    return (
-                      <div key={card.id} className="bg-success/5 border border-success/20 rounded-lg p-standard cursor-pointer kanban-card transition-all flex flex-col gap-compact">
-                        <div className="flex justify-between items-start">
-                          <span className="text-mono-data font-bold text-text-secondary line-through">{card.id}</span>
-                        </div>
-                        <div className="text-label-md text-text-secondary">{card.title}</div>
-                        <div className="flex items-center gap-1 text-success mt-2">
-                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>
-                          <span className="text-[11px] font-medium">{card.completed}</span>
-                        </div>
-                      </div>
-                    );
-                  }
+            return (
+              <div
+                key={col.title}
+                className={`w-80 flex flex-col bg-surface-container-low rounded-lg p-standard border border-border-subtle shrink-0 ${
+                  col.faded ? "opacity-80 hover:opacity-100 transition-opacity" : ""
+                }`}
+                style={{ minHeight: "calc(100vh - 200px)" }}
+              >
+                {/* Column Header */}
+                <div className="flex justify-between items-center mb-standard">
+                  <h2 className="text-headline-sm text-text-primary flex items-center gap-2 uppercase tracking-wide">
+                    <span className={`w-2 h-2 rounded-full ${col.color}`} />
+                    {col.title}
+                  </h2>
+                  <span className="text-mono-data bg-surface-container-highest px-2 py-1 rounded text-text-secondary font-semibold">
+                    {visibleCards.length}
+                  </span>
+                </div>
 
-                  // Active card
-                  return (
-                    <div key={card.id} className={`bg-surface-container-lowest border border-border-subtle rounded-lg p-standard cursor-pointer kanban-card transition-all flex flex-col gap-compact ${"borderLeft" in card ? "border-l-2 border-l-info" : ""}`}>
-                      <div className="flex justify-between items-start">
-                        <span className="text-mono-data font-bold text-text-primary">{card.id}</span>
-                        {"priority" in card && (
-                          <span className={`${card.priorityColor} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider`}>{card.priority}</span>
-                        )}
-                      </div>
-                      <div className="text-label-md text-text-primary line-clamp-2">{card.title}</div>
-                      {"date" in card && (
-                        <div className="flex items-center gap-1 text-text-secondary mt-2">
-                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
-                          <span className="text-[11px]">{card.date}</span>
-                        </div>
-                      )}
-                      {"assignee" in card && (
-                        <div className="mt-2 pt-2 border-t border-border-subtle flex justify-between items-center">
-                          <div className={`flex items-center gap-1 ${"avatar" in card ? "text-primary" : "text-text-secondary"}`}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>engineering</span>
-                            <span className="text-[11px] font-medium">{card.assignee}</span>
+                {/* Cards */}
+                <div className="flex flex-col gap-standard overflow-y-auto pr-1 pb-4">
+                  {visibleCards.length === 0 ? (
+                    <p className="text-body-sm text-text-secondary italic text-center py-4">
+                      No matching tasks
+                    </p>
+                  ) : (
+                    visibleCards.map((card) => {
+                      if ("completed" in card && card.completed) {
+                        return (
+                          <div
+                            key={card.id}
+                            onClick={() =>
+                              showToast(`Resolved task: ${card.title}`, "info")
+                            }
+                            className="bg-success/5 border border-success/20 rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-sm"
+                          >
+                            <div className="flex justify-between items-start">
+                              <span className="text-mono-data font-bold text-text-secondary line-through">
+                                {card.id}
+                              </span>
+                            </div>
+                            <div className="text-label-md text-text-secondary">
+                              {card.title}
+                            </div>
+                            <div className="flex items-center gap-1 text-success mt-2">
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 14 }}
+                              >
+                                check_circle
+                              </span>
+                              <span className="text-[11px] font-medium">
+                                {card.completed}
+                              </span>
+                            </div>
                           </div>
-                          {"avatar" in card && (
-                            <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-text-secondary">
-                              {card.avatar}
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={card.id}
+                          onClick={() =>
+                            showToast(`Active Ticket ${card.id}: ${card.title}`, "info")
+                          }
+                          className={`bg-surface-container-lowest border border-border-subtle rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-md ${
+                            card.borderLeft ? "border-l-2 border-l-info" : ""
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <span className="text-mono-data font-bold text-text-primary">
+                              {card.id}
+                            </span>
+                            {card.priority && (
+                              <span
+                                className={`${card.priorityColor} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider`}
+                              >
+                                {card.priority}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-label-md text-text-primary line-clamp-2">
+                            {card.title}
+                          </div>
+                          {card.date && (
+                            <div className="flex items-center gap-1 text-text-secondary mt-2">
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 14 }}
+                              >
+                                calendar_today
+                              </span>
+                              <span className="text-[11px]">{card.date}</span>
+                            </div>
+                          )}
+                          {card.assignee && (
+                            <div className="mt-2 pt-2 border-t border-border-subtle flex justify-between items-center">
+                              <div
+                                className={`flex items-center gap-1 ${
+                                  card.avatar ? "text-primary" : "text-text-secondary"
+                                }`}
+                              >
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: 14 }}
+                                >
+                                  engineering
+                                </span>
+                                <span className="text-[11px] font-medium">
+                                  {card.assignee}
+                                </span>
+                              </div>
+                              {card.avatar && (
+                                <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-text-secondary">
+                                  {card.avatar}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      {/* New Request Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Log New Maintenance Request"
+      >
+        <form onSubmit={handleCreateRequest} className="space-y-4">
+          <div>
+            <label className="block text-label-md mb-1" htmlFor="maint-asset">
+              Asset Tag ID
+            </label>
+            <input
+              id="maint-asset"
+              type="text"
+              value={form.assetId}
+              onChange={(e) => setForm({ ...form, assetId: e.target.value })}
+              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md font-mono"
+            />
+          </div>
+          <div>
+            <label className="block text-label-md mb-1" htmlFor="maint-title">
+              Issue Summary
+            </label>
+            <input
+              id="maint-title"
+              type="text"
+              placeholder="e.g. Broken screen hinge / Fan overheating"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-label-md mb-1" htmlFor="maint-priority">
+              Priority Severity
+            </label>
+            <select
+              id="maint-priority"
+              value={form.priority}
+              onChange={(e) => setForm({ ...form, priority: e.target.value })}
+              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md"
+            >
+              <option value="High">High (Immediate Action Required)</option>
+              <option value="Med">Medium (Normal Servicing Queue)</option>
+              <option value="Low">Low (Scheduled Inspection)</option>
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90 font-medium"
+            >
+              Submit Ticket
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
