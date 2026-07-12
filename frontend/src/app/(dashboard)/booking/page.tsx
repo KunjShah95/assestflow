@@ -1,101 +1,94 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { assetService } from '@/services/asset.service';
+import { bookingService } from '@/services/booking.service';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Asset } from '@/types/asset';
+import type { Booking } from '@/types/booking';
+
 export default function BookingPage() {
+  const { user } = useAuth();
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    assetService.list().then(r => setAssets(r.value || [])).catch(() => {});
+    bookingService.myBookings().then(setMyBookings).catch(() => {});
+  }, []);
+
+  async function handleBook(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedAssetId || !startTime || !endTime) { setMessage('Fill all fields'); return; }
+    setLoading(true);
+    try {
+      await bookingService.create({ assetId: parseInt(selectedAssetId), startTime: new Date(startTime).toISOString(), endTime: new Date(endTime).toISOString() });
+      setMessage('Booking created!');
+      setSelectedAssetId(''); setStartTime(''); setEndTime('');
+      bookingService.myBookings().then(setMyBookings).catch(() => {});
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : 'Booking failed');
+    } finally { setLoading(false); }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-container bg-surface-bright animate-fade-in">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-label-md text-text-secondary uppercase tracking-wider mb-1">Resource</h2>
-          <h1 className="text-headline-lg text-text-primary flex items-center gap-2">
-            Conference Room B2
-            <span className="text-text-secondary text-headline-sm">– Tue, 7 Jul</span>
-          </h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-surface border border-border-subtle rounded text-text-primary text-label-md hover:bg-surface-container-low transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-            Change Date
-          </button>
-          <button className="px-4 py-2 bg-primary text-on-primary rounded text-label-md hover:bg-primary-container transition-colors shadow-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Book a slot
-          </button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-headline-lg text-text-primary">Resource Booking</h1>
+        <p className="text-body-sm text-text-secondary mt-1">Reserve assets and resources for specific time slots.</p>
       </div>
 
-      {/* Booking Calendar */}
-      <div className="bg-surface-container-lowest border border-border-subtle rounded-lg shadow-sm p-comfortable relative">
-        <div className="timeline-grid">
-          {/* Time Column */}
-          <div className="flex flex-col text-right pr-4 border-r border-border-subtle text-mono-data text-text-secondary">
-            {["9:00", "10:00", "11:00", "12:00", "13:00"].map((time, i) => (
-              <div key={time} className={`timeline-row flex items-start justify-end -mt-3 ${i === 4 ? "border-b-0" : ""}`}>
-                <span>{time}</span>
+      {message && (
+        <div className={`mb-4 p-3 rounded text-body-sm ${message.includes('created') ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'}`}>{message}</div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable shadow-sm">
+          <h2 className="text-headline-sm mb-4">New Booking</h2>
+          <form onSubmit={handleBook} className="space-y-4">
+            <div>
+              <label className="text-label-md text-text-primary block mb-1">Asset / Resource</label>
+              <select className="w-full px-3 py-2 bg-surface-container-lowest border border-border-subtle rounded text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" value={selectedAssetId} onChange={e => setSelectedAssetId(e.target.value)}>
+                <option value="">Select...</option>
+                {assets.map(a => <option key={a.id} value={a.id}>{a.tag} – {a.name}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-label-md text-text-primary block mb-1">Start</label>
+                <input type="datetime-local" className="w-full px-3 py-2 border border-border-subtle rounded text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" value={startTime} onChange={e => setStartTime(e.target.value)} />
               </div>
-            ))}
-          </div>
-
-          {/* Schedule Column */}
-          <div className="relative w-full pb-8">
-            {/* Grid Lines */}
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className={`timeline-row ${i === 4 ? "border-b-0" : ""}`} />
-            ))}
-
-            {/* Booked Block (9:00 - 10:30) */}
-            <div
-              className="absolute top-0 left-0 right-4 bg-primary-fixed border border-primary text-on-primary-fixed rounded p-3 shadow-sm z-10"
-              style={{ height: 90, marginTop: 0 }}
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-label-md font-bold">Booked – Procurement Team</h4>
-                  <p className="text-body-sm opacity-80">9:00 to 10:30</p>
-                </div>
-                <span className="material-symbols-outlined text-[18px] opacity-70">groups</span>
+              <div>
+                <label className="text-label-md text-text-primary block mb-1">End</label>
+                <input type="datetime-local" className="w-full px-3 py-2 border border-border-subtle rounded text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" value={endTime} onChange={e => setEndTime(e.target.value)} />
               </div>
             </div>
-
-            {/* Conflict Request (9:30 - 10:30) */}
-            <div
-              className="absolute left-4 right-8 border-2 border-dashed border-error bg-error-container/30 rounded p-2 z-20 flex flex-col justify-end"
-              style={{ top: 30, height: 60 }}
-            >
-              <div className="flex items-center gap-2 text-error">
-                <span className="material-symbols-outlined text-[16px]">warning</span>
-                <span className="text-label-md">Requested 9:30 to 10:30 – conflict – slot is unavailable</span>
-              </div>
-            </div>
-
-            {/* Empty Slot Hover (11:00 - 12:00) */}
-            <div
-              className="absolute left-0 right-4 rounded border border-transparent hover:border-primary border-dashed hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
-              style={{ top: 120, height: 60 }}
-            >
-              <span className="opacity-0 group-hover:opacity-100 text-primary text-label-md flex items-center gap-1 transition-opacity">
-                <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                Click to book 11:00 – 12:00
-              </span>
-            </div>
-          </div>
+            <button type="submit" disabled={loading} className="bg-primary text-on-primary px-4 py-2 rounded text-label-md hover:bg-primary-container transition-colors disabled:opacity-50">
+              {loading ? 'Booking...' : 'Book Now'}
+            </button>
+          </form>
         </div>
-      </div>
 
-      {/* Resource Details Panel */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable">
-          <h3 className="text-headline-sm mb-3">Resource Details</h3>
-          <dl className="space-y-2 text-body-sm">
-            {[
-              { label: "Capacity", value: "12 People" },
-              { label: "Equipment", value: "Projector, Whiteboard" },
-              { label: "Location", value: "Floor 2, East Wing" },
-            ].map((item) => (
-              <div key={item.label} className="flex justify-between border-b border-surface-container-high pb-1 last:border-b-0">
-                <dt className="text-text-secondary">{item.label}</dt>
-                <dd className="font-medium text-text-primary">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
+        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable shadow-sm">
+          <h3 className="text-headline-sm mb-3">My Bookings</h3>
+          {myBookings.length === 0 ? (
+            <p className="text-body-sm text-text-secondary">No bookings yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {myBookings.map(b => (
+                <li key={b.id} className="border-b border-border-subtle pb-2 last:border-0">
+                  <p className="text-body-sm font-medium">Asset #{b.assetId}</p>
+                  <p className="text-mono-data text-text-secondary">{new Date(b.startTime).toLocaleDateString()} – {new Date(b.endTime).toLocaleDateString()}</p>
+                  <span className="inline-block text-[10px] uppercase font-bold text-info">{b.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
