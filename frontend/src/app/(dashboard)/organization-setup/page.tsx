@@ -81,10 +81,14 @@ export default function OrganizationSetupPage() {
         assetService.list()
       ]);
 
+      const employeeNameById = new Map((emps || []).map((e: Employee) => [e.id, e.name]));
+
       const mappedDepts: DeptRow[] = (depts || []).map((d: Department, index: number) => ({
         id: d.id || index,
         name: d.name || "",
-        head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
+        head: d.headEmployeeId
+          ? employeeNameById.get(d.headEmployeeId) ?? "Unknown"
+          : "TBD",
         parent: d.parentDepartmentId ? `Dept #${d.parentDepartmentId}` : "--",
         status: d.status === "active" ? "Active" : "Inactive",
         isChild: !!d.parentDepartmentId,
