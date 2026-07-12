@@ -7,7 +7,7 @@ export interface AssetCategory {
 
 export interface Asset {
   id: number;
-  tag: string;
+  assetTag: string;
   name: string;
   description: string | null;
   categoryId: number | null;

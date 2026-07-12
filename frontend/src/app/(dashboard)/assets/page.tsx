@@ -8,6 +8,7 @@ import type { Asset, AssetCategory } from "@/types/asset";
 import { Search, Plus, ChevronDown, FilterX, ArrowDown, Package, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface AssetItem {
+  id: number;
   tag: string;
   name: string;
   icon: string;
@@ -58,7 +59,8 @@ export default function AssetsPage() {
         ]);
 
         const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
-          tag: a.tag || "",
+          id: a.id,
+          tag: a.assetTag || "",
           name: a.name || "",
           icon: "inventory_2",
           category: cats?.find((c: AssetCategory) => c.id === a.categoryId)?.name || "General",
@@ -117,7 +119,8 @@ export default function AssetsPage() {
       });
       const items = await assetService.list();
       const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
-        tag: a.tag || "",
+        id: a.id,
+        tag: a.assetTag || "",
         name: a.name || "",
         icon: "inventory_2",
         category: "General",
@@ -142,7 +145,7 @@ export default function AssetsPage() {
     if (action === "retire") {
       setAssets(
         assets.map((a) =>
-          a.tag === assetItem.tag
+          a.id === assetItem.id
             ? { ...a, status: "Retired", statusColor: "danger", faded: true }
             : a
         )
@@ -272,7 +275,7 @@ export default function AssetsPage() {
             ) : (
               filteredAssets.map((asset) => (
                 <div
-                  key={asset.tag}
+                  key={asset.id}
                   onClick={() => showToast(`Selected asset: ${asset.name} (${asset.tag})`, "info")}
                   className={`grid grid-cols-12 gap-4 px-comfortable py-3 border-b border-border-subtle hover:bg-surface-container-low transition-colors items-center group cursor-pointer ${asset.faded ? "bg-surface-container-lowest/50" : ""}`}
                 >
