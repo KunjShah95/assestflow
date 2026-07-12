@@ -6,6 +6,11 @@ const pool = new Pool({
   connectionString: env.DATABASE_URL,
 });
 
+pool.on('error', (err) => {
+  console.error('Unexpected pool error', err);
+  process.exit(1);
+});
+
 const db = drizzle(pool);
 
 module.exports = { db, pool };
