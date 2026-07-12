@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { authService } from "@/services/auth.service";
+import { setToken } from "@/lib/api-client";
 
 export default function LoginPage() {
-  const { login, signup } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("admin@assetflow.com");
   const [password, setPassword] = useState("password123");
   const [name, setName] = useState("");
@@ -18,11 +20,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignup) {
-        await signup({ email, password, name });
+        await authService.signup({ email, password, name });
         setIsSignup(false);
         setError("Account created. Login after admin promotes you.");
       } else {
-        await login(email, password);
+        const res = await authService.login(email, password);
+        setToken(res.token);
+        router.push("/dashboard");
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
