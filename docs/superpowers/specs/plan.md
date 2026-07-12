@@ -80,6 +80,7 @@ backend/
 ### Task 1: Project Setup
 
 **Files:**
+
 - Create: `backend/.env`
 - Create: `backend/drizzle.config.ts`
 - Modify: `backend/package.json`
@@ -217,6 +218,7 @@ git commit -m "feat: project setup with Express 5 + Drizzle + NeonDB"
 ### Task 2: Database Schema
 
 **Files:**
+
 - Create: `backend/src/models/schema.ts`
 
 This file defines ALL PostgreSQL tables using Drizzle's `pgTable`. Use TypeScript for type safety.
@@ -453,6 +455,7 @@ git commit -m "feat: database schema with 14 tables"
 ### Task 3: Auth Middleware
 
 **Files:**
+
 - Create: `backend/src/middleware/auth.middleware.js`
 - Create: `backend/src/middleware/role.middleware.js`
 - Create: `backend/src/middleware/validate.middleware.js`
@@ -677,6 +680,7 @@ git commit -m "feat: auth system with signup, login, JWT, role middleware"
 ### Task 4: Department, Category & Employee CRUD
 
 **Files:**
+
 - Create: `backend/src/controllers/department.controller.js`
 - Create: `backend/src/controllers/category.controller.js`
 - Create: `backend/src/controllers/employee.controller.js`
@@ -688,6 +692,7 @@ git commit -m "feat: auth system with signup, login, JWT, role middleware"
 Each controller follows the same pattern: Zod validation → Drizzle query → JSON response.
 
 Key endpoints:
+
 - `GET/POST /departments`, `PATCH /departments/:id` — admin only for write
 - `GET/POST /categories`, `PATCH /categories/:id` — admin only
 - `GET /employees` — admin/manager
@@ -764,6 +769,7 @@ git commit -m "feat: departments, categories, employees CRUD"
 ### Task 5: Asset Registration & Directory
 
 **Files:**
+
 - Create: `backend/src/controllers/asset.controller.js`
 - Create: `backend/src/routes/asset.routes.js`
 
@@ -888,6 +894,7 @@ git commit -m "feat: asset registration with auto-tag, QR, search, filter"
 ### Task 6: Allocation Engine
 
 **Files:**
+
 - Create: `backend/src/engines/allocation.engine.js`
 - Create: `backend/src/controllers/allocation.controller.js`
 - Create: `backend/src/routes/allocation.routes.js`
@@ -1003,6 +1010,7 @@ git commit -m "feat: allocation engine with conflict detection and transfer work
 ### Task 7: Booking Engine
 
 **Files:**
+
 - Create: `backend/src/engines/booking.engine.js`
 - Create: `backend/src/controllers/booking.controller.js`
 - Create: `backend/src/routes/booking.routes.js`
@@ -1087,6 +1095,7 @@ git commit -m "feat: booking engine with overlap validation and calendar"
 ### Task 8: Maintenance Engine
 
 **Files:**
+
 - Create: `backend/src/engines/maintenance.engine.js`
 - Create: `backend/src/controllers/maintenance.controller.js`
 - Create: `backend/src/routes/maintenance.routes.js`
@@ -1143,6 +1152,7 @@ export { createRequest, approveRequest, rejectRequest, resolveRequest };
 ### Task 9: Audit Engine
 
 **Files:**
+
 - Create: `backend/src/engines/audit.engine.js`
 - Create: `backend/src/controllers/audit.controller.js`
 - Create: `backend/src/routes/audit.routes.js`
@@ -1204,6 +1214,7 @@ async function closeCycle(cycleId, closerId) {
 ### Task 10: Policy Engine
 
 **Files:**
+
 - Create: `backend/src/engines/policy.engine.js`
 - Create: `backend/src/controllers/policy.controller.js`
 - Create: `backend/src/routes/policy.routes.js`
@@ -1271,6 +1282,7 @@ export { evaluate, createPolicy, listPolicies };
 ### Task 11: Intelligence Engine (Decision Reasoning)
 
 **Files:**
+
 - Create: `backend/src/engines/intelligence.engine.js`
 
 This engine generates human-readable reasoning for every allocation and booking decision. It's called by the controllers after an engine action succeeds and augments the response.
@@ -1333,6 +1345,7 @@ res.json({ allocation, intelligence });
 ### Task 12: Notification Engine
 
 **Files:**
+
 - Create: `backend/src/engines/notification.engine.js`
 - Create: `backend/src/controllers/notification.controller.js`
 - Create: `backend/src/routes/notification.routes.js`
@@ -1399,6 +1412,7 @@ async function activityLog(req, res, next) {
 ### Task 13: Reports API
 
 **Files:**
+
 - Create: `backend/src/controllers/report.controller.js`
 - Create: `backend/src/routes/report.routes.js`
 
@@ -1474,6 +1488,7 @@ async function bookingHeatmap(req, res, next) {
 ### Task 14: Seed Script
 
 **Files:**
+
 - Create: `backend/seed.js`
 
 - [ ] **Step 1: Create `backend/seed.js`**

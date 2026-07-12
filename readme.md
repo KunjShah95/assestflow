@@ -53,6 +53,20 @@ node src/index.js
 
 Server runs on `http://localhost:3001`.
 
+## Test Credentials
+
+After seeding (`node seed.js`), the following accounts are available:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@assetflow.com` | `password123` | Admin (full system access) |
+| `head@assetflow.com` | `password123` | Department Head (approve requests within dept) |
+| `manager@assetflow.com` | `password123` | Asset Manager (manage assets, approve allocations/maintenance) |
+| `emp1@assetflow.com` | `password123` | Employee (request assets, book resources) |
+| `emp2@assetflow.com` | `password123` | Employee (request assets, book resources) |
+
+**JWT Secret:** Auto-generated 512-bit cryptographically secure secret (see `backend/.env`).
+
 ## Roles & Permissions
 
 | Role | Scope |
@@ -65,6 +79,7 @@ Server runs on `http://localhost:3001`.
 ## API Endpoints
 
 ### Auth
+
 ```
 POST /api/auth/signup              Register employee
 POST /api/auth/login               Login → JWT token
@@ -73,6 +88,7 @@ PATCH /api/employees/:id/role      Promote role (admin only)
 ```
 
 ### Directory
+
 ```
 GET    /api/departments             List departments
 POST   /api/departments             Create department (admin)
@@ -86,6 +102,7 @@ PATCH  /api/assets/:id              Update asset
 ```
 
 ### Allocation
+
 ```
 POST   /api/allocations             Assign asset to employee
 PATCH  /api/allocations/:id/transfer  Transfer asset
@@ -93,6 +110,7 @@ POST   /api/allocations/:id/return  Return asset
 ```
 
 ### Booking
+
 ```
 POST   /api/bookings                Book asset (time-slot)
 DELETE /api/bookings/:id            Cancel booking
@@ -101,6 +119,7 @@ GET    /api/bookings/mine           My bookings
 ```
 
 ### Maintenance
+
 ```
 POST   /api/maintenance              Create request
 PATCH  /api/maintenance/:id/approve  Approve (manager)
@@ -109,6 +128,7 @@ PATCH  /api/maintenance/:id/resolve  Mark resolved
 ```
 
 ### Audit
+
 ```
 POST   /api/audits/cycles            Create audit cycle
 PATCH  /api/audits/cycles/:id/close  Close cycle
@@ -117,6 +137,7 @@ GET    /api/audits/cycles/:id/results  Cycle results
 ```
 
 ### Reports
+
 ```
 GET    /api/reports/kpi              Mission Control KPIs
 GET    /api/reports/idle-assets      Idle asset list
@@ -125,6 +146,7 @@ GET    /api/reports/booking-heatmap  Booking density heatmap
 ```
 
 ### Policies & Notifications
+
 ```
 GET    /api/policies                 List policy rules
 POST   /api/policies                 Create policy rule (admin)
