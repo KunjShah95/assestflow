@@ -1,6 +1,28 @@
 import { Router } from 'express';
 import { authRouter } from './auth.routes.js';
+import { departmentRouter } from './department.routes.js';
+import { categoryRouter } from './category.routes.js';
+import { employeeRouter } from './employee.routes.js';
+import { assetRouter } from './asset.routes.js';
+import { allocationRouter } from './allocation.routes.js';
+import { bookingRouter } from './booking.routes.js';
+import { maintenanceRouter } from './maintenance.routes.js';
+import { auditRouter } from './audit.routes.js';
+import { notificationRouter } from './notification.routes.js';
+import { policyRouter } from './policy.routes.js';
+import { reportRouter } from './report.routes.js';
 
 export const router = Router();
 router.get('/health', (req, res) => res.json({ status: 'ok' }));
 router.use('/auth', authRouter);
+router.use('/departments', departmentRouter);
+router.use('/categories', categoryRouter);
+router.use('/employees', employeeRouter);
+router.use('/assets', assetRouter);
+router.use('/allocations', allocationRouter);
+router.use('/bookings', bookingRouter);
+router.use('/maintenance', maintenanceRouter);
+router.use('/audits', auditRouter);
+router.use('/notifications', notificationRouter);
+router.use('/policies', policyRouter);
+router.use('/reports', reportRouter);
