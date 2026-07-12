@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import React, { useState } from "react";
@@ -220,9 +221,85 @@ export default function BookingPage() {
               </span>
             </div>
           </div>
-        </div>
+=======
+'use client';
+
+import { useState, useEffect } from 'react';
+import { assetService } from '@/services/asset.service';
+import { bookingService } from '@/services/booking.service';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Asset } from '@/types/asset';
+import type { Booking } from '@/types/booking';
+
+export default function BookingPage() {
+  const { user } = useAuth();
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    assetService.list().then(r => setAssets(r.value || [])).catch(() => {});
+    bookingService.myBookings().then(setMyBookings).catch(() => {});
+  }, []);
+
+  async function handleBook(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedAssetId || !startTime || !endTime) { setMessage('Fill all fields'); return; }
+    setLoading(true);
+    try {
+      await bookingService.create({ assetId: parseInt(selectedAssetId), startTime: new Date(startTime).toISOString(), endTime: new Date(endTime).toISOString() });
+      setMessage('Booking created!');
+      setSelectedAssetId(''); setStartTime(''); setEndTime('');
+      bookingService.myBookings().then(setMyBookings).catch(() => {});
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : 'Booking failed');
+    } finally { setLoading(false); }
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-container bg-surface-bright animate-fade-in">
+      <div className="mb-6">
+        <h1 className="text-headline-lg text-text-primary">Resource Booking</h1>
+        <p className="text-body-sm text-text-secondary mt-1">Reserve assets and resources for specific time slots.</p>
       </div>
 
+      {message && (
+        <div className={`mb-4 p-3 rounded text-body-sm ${message.includes('created') ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'}`}>{message}</div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable shadow-sm">
+          <h2 className="text-headline-sm mb-4">New Booking</h2>
+          <form onSubmit={handleBook} className="space-y-4">
+            <div>
+              <label className="text-label-md text-text-primary block mb-1">Asset / Resource</label>
+              <select className="w-full px-3 py-2 bg-surface-container-lowest border border-border-subtle rounded text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" value={selectedAssetId} onChange={e => setSelectedAssetId(e.target.value)}>
+                <option value="">Select...</option>
+                {assets.map(a => <option key={a.id} value={a.id}>{a.tag} – {a.name}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-label-md text-text-primary block mb-1">Start</label>
+                <input type="datetime-local" className="w-full px-3 py-2 border border-border-subtle rounded text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" value={startTime} onChange={e => setStartTime(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-label-md text-text-primary block mb-1">End</label>
+                <input type="datetime-local" className="w-full px-3 py-2 border border-border-subtle rounded text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" value={endTime} onChange={e => setEndTime(e.target.value)} />
+              </div>
+            </div>
+            <button type="submit" disabled={loading} className="bg-primary text-on-primary px-4 py-2 rounded text-label-md hover:bg-primary-container transition-colors disabled:opacity-50">
+              {loading ? 'Booking...' : 'Book Now'}
+            </button>
+          </form>
+>>>>>>> 0c3e4cf95e6e6e4335d56146084439ad368addef
+        </div>
+
+<<<<<<< HEAD
       {/* Resource Details Panel */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable">
@@ -242,6 +319,23 @@ export default function BookingPage() {
               </div>
             ))}
           </dl>
+=======
+        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable shadow-sm">
+          <h3 className="text-headline-sm mb-3">My Bookings</h3>
+          {myBookings.length === 0 ? (
+            <p className="text-body-sm text-text-secondary">No bookings yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {myBookings.map(b => (
+                <li key={b.id} className="border-b border-border-subtle pb-2 last:border-0">
+                  <p className="text-body-sm font-medium">Asset #{b.assetId}</p>
+                  <p className="text-mono-data text-text-secondary">{new Date(b.startTime).toLocaleDateString()} – {new Date(b.endTime).toLocaleDateString()}</p>
+                  <span className="inline-block text-[10px] uppercase font-bold text-info">{b.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+>>>>>>> 0c3e4cf95e6e6e4335d56146084439ad368addef
         </div>
       </div>
 
