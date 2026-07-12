@@ -19,7 +19,9 @@ export default function Modal({
   maxWidth = "max-w-lg",
 }: ModalProps) {
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

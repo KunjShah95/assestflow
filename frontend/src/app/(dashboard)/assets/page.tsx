@@ -106,7 +106,10 @@ export default function AssetsPage() {
   }, [handleError]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    const t = setTimeout(() => {
+      setCurrentPage(1);
+    }, 0);
+    return () => clearTimeout(t);
   }, [searchQuery, selectedCategory, selectedStatus]);
 
   const statusClasses: Record<string, string> = {

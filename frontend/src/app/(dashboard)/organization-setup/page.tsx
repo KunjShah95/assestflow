@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useApiError } from "@/hooks/useApiError";
 import { departmentService } from "@/services/department.service";
@@ -11,7 +11,7 @@ import { policyService } from "@/services/policy.service";
 import type { AssetCategory } from "@/types/asset";
 import type { Employee } from "@/types/employee";
 import type { Policy } from "@/services/policy.service";
-import { Search, Download, Plus, FolderTree, Edit2, Shield, MapPin, Users, Settings } from "lucide-react";
+import { Search, Download, Plus, FolderTree, Shield, MapPin, Users, Settings } from "lucide-react";
 
 interface DeptRow {
   id: number;
@@ -57,7 +57,7 @@ export default function OrganizationSetupPage() {
       }
     }
     fetchDepartments();
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     async function fetchTabData() {
@@ -85,12 +85,14 @@ export default function OrganizationSetupPage() {
     if (activeTab !== "Departments") {
       fetchTabData();
     }
-  }, [activeTab]);
+  }, [activeTab, handleError]);
 
-  const filteredDepartments = departments.filter((d) =>
-    d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.head.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDepartments = React.useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return q
+      ? departments.filter((d) => d.name.toLowerCase().includes(q) || d.head.toLowerCase().includes(q))
+      : departments;
+  }, [departments, searchQuery]);
 
   const filteredCategories = categories.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())

@@ -102,13 +102,16 @@ export default function BookingPage() {
       }
     }
     init();
-  }, []);
+  }, [selectedDate, loadBookings, handleError]);
 
   useEffect(() => {
     if (selectedAssetId) {
-      loadBookings(selectedAssetId, selectedDate).catch((err) =>
-        handleError(err, "Could not load bookings for this date")
-      );
+      const t = setTimeout(() => {
+        loadBookings(selectedAssetId, selectedDate).catch((err) =>
+          handleError(err, "Could not load bookings for this date")
+        );
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [selectedAssetId, selectedDate, loadBookings, handleError]);
 

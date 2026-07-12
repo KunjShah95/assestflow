@@ -92,14 +92,22 @@ export default function SettingsPage() {
   const [passwordSaving, setPasswordSaving] = useState(false);
 
   useEffect(() => {
-    setNotifPrefs(loadPrefs("assetflow_notif_prefs", defaultNotifPrefs));
-    setAppearancePrefs(loadPrefs("assetflow_appearance_prefs", defaultAppearancePrefs));
+    const notif = loadPrefs("assetflow_notif_prefs", defaultNotifPrefs);
+    const app = loadPrefs("assetflow_appearance_prefs", defaultAppearancePrefs);
+    const t = setTimeout(() => {
+      setNotifPrefs(notif);
+      setAppearancePrefs(app);
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name);
-      setProfileEmail(user.email);
+      const t = setTimeout(() => {
+        setProfileName(user.name);
+        setProfileEmail(user.email);
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [user]);
 
