@@ -32,7 +32,11 @@ export const assetService = {
     return apiGet<AssetCategory[]>('/categories');
   },
 
-  createCategory(data: { name: string; description?: string }) {
+  createCategory(data: { name: string; description?: string; warrantyPeriodDays?: number }) {
     return apiPost<AssetCategory>('/categories', data);
+  },
+
+  updateCategory(id: number, data: { name?: string; description?: string; warrantyPeriodDays?: number }) {
+    return apiPatch<AssetCategory>(`/categories/${id}`, data);
   },
 };

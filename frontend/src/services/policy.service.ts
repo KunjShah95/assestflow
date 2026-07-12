@@ -1,4 +1,4 @@
-import { apiGet } from '@/lib/api-client';
+import { apiGet, apiPost } from '@/lib/api-client';
 
 export interface Policy {
   id: number;
@@ -16,4 +16,15 @@ export const policyService = {
   list() {
     return apiGet<Policy[]>('/policies');
   },
+
+  create(data: {
+    name: string;
+    description?: string;
+    ruleType: string;
+    action: 'allow' | 'deny' | 'require_approval';
+    priority?: number;
+    conditions?: Record<string, unknown>;
+  }) {
+    return apiPost<Policy>('/policies', data);
+  }
 };
