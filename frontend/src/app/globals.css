@@ -1,92 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   /* ── Core Colors ─────────────────────────────────────── */
-  --color-text-primary: #0F172A;
-  --color-error-container: #ffdad6;
-  --color-on-primary-fixed: #00174b;
-  --color-on-secondary: #ffffff;
-  --color-on-background: #191b23;
-  --color-surface-container-lowest: #ffffff;
-  --color-primary-fixed-dim: #b4c5ff;
-  --color-on-tertiary-fixed: #360f00;
-  --color-surface: #faf8ff;
-  --color-inverse-primary: #b4c5ff;
-  --color-on-error-container: #93000a;
-  --color-tertiary: #943700;
-  --color-divider: #F1F5F9;
-  --color-surface-dim: #d9d9e5;
-  --color-primary-container: #2563eb;
-  --color-outline: #737686;
-  --color-border: #E2E8F0;
-  --color-on-secondary-container: #626567;
-  --color-text-secondary: #475569;
-  --color-secondary-fixed: #e0e3e5;
-  --color-on-primary-fixed-variant: #003ea8;
-  --color-tertiary-fixed: #ffdbcd;
-  --color-text-muted: #94A3B8;
-  --color-surface-tint: #0053db;
-  --color-success: #10B981;
-  --color-danger: #EF4444;
-  --color-secondary-fixed-dim: #c4c7c9;
-  --color-on-tertiary: #ffffff;
-  --color-secondary: #5c5f61;
-  --color-tertiary-fixed-dim: #ffb596;
-  --color-background: #faf8ff;
-  --color-surface-container-highest: #e1e2ed;
-  --color-inverse-surface: #2e3039;
-  --color-dark-bg: #020617;
-  --color-inverse-on-surface: #f0f0fb;
-  --color-primary: #004ac6;
+  --color-primary: #005c55;
+  --color-primary-container: #0f766e;
+  --color-primary-fixed: #9cf2e8;
+  --color-primary-fixed-dim: #80d5cb;
   --color-on-primary: #ffffff;
-  --color-surface-container-high: #e7e7f3;
-  --color-surface-container: #ededf9;
-  --color-on-error: #ffffff;
-  --color-accent-hover: #1D4ED8;
-  --color-on-secondary-fixed: #191c1e;
-  --color-tertiary-container: #bc4800;
-  --color-secondary-container: #e0e3e5;
-  --color-surface-variant: #e1e2ed;
-  --color-on-tertiary-fixed-variant: #7d2d00;
-  --color-on-secondary-fixed-variant: #444749;
-  --color-on-surface: #191b23;
-  --color-surface-container-low: #f3f3fe;
-  --color-on-surface-variant: #434655;
-  --color-on-primary-container: #eeefff;
-  --color-warning: #F59E0B;
+  --color-on-primary-container: #a3faef;
+  --color-on-primary-fixed: #00201d;
+  --color-on-primary-fixed-variant: #00504a;
+  --color-inverse-primary: #80d5cb;
+
+  --color-secondary: #505f76;
+  --color-secondary-container: #d4e3ff;
+  --color-secondary-fixed: #d4e3ff;
+  --color-secondary-fixed-dim: #b8c7e2;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #56657c;
+  --color-on-secondary-fixed: #0c1c30;
+  --color-on-secondary-fixed-variant: #39485e;
+
+  --color-tertiary: #7f4025;
+  --color-tertiary-container: #9c573a;
+  --color-tertiary-fixed: #ffdbce;
+  --color-tertiary-fixed-dim: #ffb598;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #ffe5db;
+  --color-on-tertiary-fixed: #370e00;
+  --color-on-tertiary-fixed-variant: #72361b;
+
+  --color-surface: #f7f9fb;
+  --color-surface-bright: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+  --color-surface-tint: #006a63;
+  --color-surface-variant: #e0e3e5;
+  --color-surface-container: #eceef0;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #3e4947;
+  --color-inverse-surface: #2d3133;
+  --color-inverse-on-surface: #eff1f3;
+
+  --color-background: #f7f9fb;
+  --color-on-background: #191c1e;
+
   --color-error: #ba1a1a;
-  --color-surface-bright: #faf8ff;
-  --color-primary-fixed: #dbe1ff;
-  --color-on-tertiary-container: #ffede6;
-  --color-outline-variant: #c3c6d7;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+
+  --color-outline: #6e7977;
+  --color-outline-variant: #bdc9c6;
+  --color-border-subtle: #E2E8F0;
+
+  /* ── Semantic Colors ─────────────────────────────────── */
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-info: #2563EB;
+  --color-danger: #DC2626;
+
+  /* ── Text Colors ─────────────────────────────────────── */
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #475569;
 
   /* ── Spacing ─────────────────────────────────────────── */
-  --spacing-section-padding: 120px;
-  --spacing-margin-desktop: 64px;
-  --spacing-gutter: 32px;
-  --spacing-margin-mobile: 20px;
-  --spacing-container-max: 1320px;
+  --spacing-sidebar-width: 260px;
+  --spacing-compact: 8px;
+  --spacing-comfortable: 16px;
+  --spacing-base: 4px;
+  --spacing-standard: 12px;
+  --spacing-container: 24px;
 
   /* ── Border Radius ───────────────────────────────────── */
   --radius: 0.25rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
-  --radius-full: 9999px;
 
   /* ── Fonts ───────────────────────────────────────────── */
-  --font-sans: "Inter", var(--font-inter), "SF Pro Display", system-ui, sans-serif;
-  --font-body-lg: "Inter", sans-serif;
-  --font-label-sm: "Inter", sans-serif;
-  --font-body-md: "Inter", sans-serif;
-  --font-headline-card: "Inter", sans-serif;
-  --font-display-hero: "Inter", sans-serif;
-  --font-display-hero-mobile: "Inter", sans-serif;
-  --font-subheading-hero: "Inter", sans-serif;
-  --font-headline-section: "Inter", sans-serif;
-  --font-button: "Inter", sans-serif;
-  --font-headline-section-mobile: "Inter", sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
+
 
 /* ── Base Styles ──────────────────────────────────────── */
 html {
@@ -102,107 +102,6 @@ body {
 }
 
 /* ── Typography Utilities ─────────────────────────────── */
-.text-body-lg {
-  font-size: 17px;
-  line-height: 26px;
-  font-weight: 400;
-}
-
-.text-label-sm {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-}
-
-.text-body-md {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-}
-
-.text-headline-card {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 600;
-}
-
-.text-display-hero {
-  font-size: 64px;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  font-weight: 700;
-}
-
-.text-display-hero-mobile {
-  font-size: 40px;
-  line-height: 1.1;
-  font-weight: 700;
-}
-
-.text-subheading-hero {
-  font-size: 20px;
-  line-height: 30px;
-  font-weight: 400;
-}
-
-.text-headline-section {
-  font-size: 42px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  font-weight: 700;
-}
-
-.text-button {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 500;
-}
-
-.text-headline-section-mobile {
-  font-size: 32px;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-/* ── Material Symbols ─────────────────────────────────── */
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-}
-
-/* ── Custom Landing Page Backgrounds ──────────────────── */
-.grid-pattern {
-  background-image: radial-gradient(circle at 2px 2px, #E2E8F0 1px, transparent 0);
-  background-size: 40px 40px;
-}
-
-.radial-glow {
-  background: radial-gradient(60% 60% at 50% 50%, rgba(37, 99, 235, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.animate-reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.animate-reveal.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.timeline-step:hover .step-line {
-  background-color: #004ac6;
-}
-
-/* ── Legacy & UI Components (kept for backward compatibility) ── */
 .text-headline-lg {
   font-size: 24px;
   line-height: 32px;
@@ -221,6 +120,18 @@ body {
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
+}
+
+.text-body-lg {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.text-body-md {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
 }
 
 .text-body-sm {
@@ -243,6 +154,16 @@ body {
   font-weight: 400;
 }
 
+/* ── Material Symbols ─────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* ── Scrollbar ────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -257,11 +178,13 @@ body {
   border-radius: 4px;
 }
 
+/* ── Kanban card hover effect ─────────────────────────── */
 .kanban-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-1px);
 }
 
+/* ── Chart Styles ─────────────────────────────────────── */
 .chart-bar {
   background-color: #005c55;
   transition: height 0.3s ease;
@@ -278,6 +201,7 @@ body {
   opacity: 0.2;
 }
 
+/* ── Timeline Grid ────────────────────────────────────── */
 .timeline-grid {
   display: grid;
   grid-template-columns: 80px 1fr;
@@ -290,6 +214,7 @@ body {
   position: relative;
 }
 
+/* ── Animations ───────────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
