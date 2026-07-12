@@ -78,26 +78,12 @@ export default function AssetsPage() {
           assetService.categories(),
         ]);
 
-<<<<<<< HEAD
-        const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
-          id: a.id,
-          tag: a.tag || a.assetTag || "",
-          name: a.name || "",
-          icon: "inventory_2",
-          category: cats?.find((c: AssetCategory) => c.id === a.categoryId)?.name || "General",
-          status: a.status || "available",
-          statusColor: statusToColor[a.status] || "success",
-          location: a.location || "",
-          faded: ["retired", "lost", "disposed"].includes(a.status),
-        }));
-=======
         const catMap = new Map<number, string>(
           (cats || []).map((c: AssetCategory) => [Number(c.id), c.name])
         );
         setCategoryMap(catMap);
 
         const mapped: AssetItem[] = (items || []).map((a: Asset) => mapAsset(a, catMap));
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
 
         setAssets(mapped);
         setCategories(["All", ...Array.from(new Set((cats || []).map((c: AssetCategory) => c.name)))]);
@@ -169,21 +155,6 @@ export default function AssetsPage() {
         categoryId,
         location: newAsset.location,
       });
-<<<<<<< HEAD
-      const items = await assetService.list();
-      const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
-        id: a.id,
-        tag: a.tag || a.assetTag || "",
-        name: a.name || "",
-        icon: "inventory_2",
-        category: "General",
-        status: a.status || "available",
-        statusColor: statusToColor[a.status] || "success",
-        location: a.location || "",
-        faded: ["retired", "lost", "disposed"].includes(a.status),
-      }));
-      setAssets(mapped);
-=======
       const [items, cats] = await Promise.all([
         assetService.list(),
         assetService.categories(),
@@ -193,7 +164,6 @@ export default function AssetsPage() {
       );
       setCategoryMap(catMap);
       setAssets((items || []).map((a: Asset) => mapAsset(a, catMap)));
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
       showToast(`Asset ${newAsset.name} added successfully!`, "success");
       setIsRegisterOpen(false);
       setNewAsset({

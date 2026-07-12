@@ -78,13 +78,8 @@ export default function ActivityPage() {
             category: matched.category,
             icon: matched.icon,
             iconColor: matched.iconColor,
-<<<<<<< HEAD
-            title: `${log.action || "Activity"} - ${log.entityType || ""} #${log.entityId || log.id}`,
-            desc: log.details ? (typeof log.details === "string" ? log.details : JSON.stringify(log.details)) : "",
-=======
             title: log.displayText || formatActivityTitle(log),
             desc: log.displayText ? "" : formatActivitySubtitle(log),
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
             time: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Recently",
             user: `User #${log.employeeId}`,
           };

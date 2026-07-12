@@ -13,19 +13,7 @@ import type { Employee } from "@/types/employee";
 import type { Policy } from "@/services/policy.service";
 import { Search, Download, Plus, FolderTree, Edit2, Shield, MapPin, Users, Settings } from "lucide-react";
 
-<<<<<<< HEAD
-const TABS = [
-  { name: "Departments", icon: FolderTree },
-  { name: "Categories", icon: Settings },
-  { name: "Employees", icon: Users },
-  { name: "Locations", icon: MapPin },
-  { name: "Policies", icon: Shield },
-];
-
-interface Department {
-=======
 interface DeptRow {
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
   id: number;
   name: string;
   head: string;
@@ -53,11 +41,7 @@ export default function OrganizationSetupPage() {
     async function fetchDepartments() {
       try {
         const depts = await departmentService.list();
-<<<<<<< HEAD
-        const mapped: Department[] = (depts || []).map((d, index) => ({
-=======
         const mapped: DeptRow[] = (depts || []).map((d: Department, index: number) => ({
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
           id: d.id || index,
           name: d.name || "",
           head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
@@ -75,14 +59,6 @@ export default function OrganizationSetupPage() {
     fetchDepartments();
   }, []);
 
-<<<<<<< HEAD
-  const filteredDepartments = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    return q
-      ? departments.filter((d) => d.name.toLowerCase().includes(q) || d.head.toLowerCase().includes(q))
-      : departments;
-  }, [departments, searchQuery]);
-=======
   useEffect(() => {
     async function fetchTabData() {
       try {
@@ -115,7 +91,6 @@ export default function OrganizationSetupPage() {
     d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     d.head.toLowerCase().includes(searchQuery.toLowerCase())
   );
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
 
   const filteredCategories = categories.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -149,11 +124,7 @@ export default function OrganizationSetupPage() {
       setNewDept({ name: "", head: "", parent: "--", status: "Active" });
 
       const depts = await departmentService.list();
-<<<<<<< HEAD
-      const mapped: Department[] = (depts || []).map((d, index) => ({
-=======
       const mapped: DeptRow[] = (depts || []).map((d: Department, index: number) => ({
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
         id: d.id || index,
         name: d.name || "",
         head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
@@ -175,8 +146,6 @@ export default function OrganizationSetupPage() {
     );
   }
 
-<<<<<<< HEAD
-=======
   const tabs = [
     { name: "Departments", icon: FolderTree },
     { name: "Categories", icon: Settings },
@@ -192,7 +161,6 @@ export default function OrganizationSetupPage() {
     activeTab === "Locations" ? "Search locations..." :
     "Search policies...";
 
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
   return (
     <div className="flex-1 overflow-y-auto p-8 animate-fade-in max-w-[1320px] mx-auto pb-24">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
@@ -203,8 +171,7 @@ export default function OrganizationSetupPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-<<<<<<< HEAD
-          <button 
+          <button
             onClick={() => {
               try {
                 const header = "Department,Head,Parent,Status";
@@ -226,10 +193,6 @@ export default function OrganizationSetupPage() {
                 showToast("Export failed", "error");
               }
             }}
-=======
-          <button
-            onClick={() => showToast("Exporting Organization Hierarchy data...", "info")}
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
             className="bg-white border border-[#E2E8F0] text-[#0F172A] px-4 py-2.5 rounded-[8px] text-[13px] font-bold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2 shadow-sm"
           >
             <Download size={16} /> Export
@@ -246,7 +209,7 @@ export default function OrganizationSetupPage() {
       </div>
 
       <div className="border-b border-[#E2E8F0] flex gap-2 overflow-x-auto mb-8">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const IconComp = tab.icon;
           return (
             <button

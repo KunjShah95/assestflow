@@ -113,26 +113,6 @@ export default function DashboardPage() {
       showToast("Please enter an asset name", "error");
       return;
     }
-<<<<<<< HEAD
-    setRecentActivities((prev) => [
-      {
-        icon: "inventory_2",
-        iconBg: "bg-primary/10 text-primary",
-        title: `${newAsset.name} (${newAsset.tag})`,
-        desc: `Registered to ${newAsset.location} [${newAsset.category}]`,
-        time: "Just now",
-      },
-      ...prev,
-    ]);
-    showToast(`Successfully registered ${newAsset.name} (${newAsset.tag})!`, "success");
-    setIsRegisterOpen(false);
-    setNewAsset({
-      name: "",
-      category: "Electronics",
-      location: "Bengaluru, BLR-01",
-      tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
-    });
-=======
     setRegistering(true);
     try {
       const created = await assetService.create({
@@ -158,7 +138,6 @@ export default function DashboardPage() {
     } finally {
       setRegistering(false);
     }
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
   };
 
   if (loading) {

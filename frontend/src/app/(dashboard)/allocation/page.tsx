@@ -153,12 +153,6 @@ export default function AllocationPage() {
         reason: reason.trim(),
       });
 
-<<<<<<< HEAD
-      const newEntry: HistoryEntry = { date: "Just now", desc: `Transfer Requested to ${toEmployee}`, sub: `Reason: ${reason}`, active: true };
-      setHistory((prev) => [newEntry, ...prev.map((h) => ({ ...h, active: false }))]);
-      showToast(`Transfer request submitted for AF-0114 to ${toEmployee}!`, "success");
-      setToEmployee("");
-=======
       const toName = employees.find((e) => e.id === parseInt(toEmployeeId))?.name ?? "employee";
       const newEntry: HistoryEntry = {
         date: "Just now",
@@ -169,7 +163,6 @@ export default function AllocationPage() {
       setHistory([newEntry, ...history.map((h) => ({ ...h, active: false }))]);
       showToast(`Transfer request submitted for ${selected.assetTag} to ${toName}!`, "success");
       setToEmployeeId("");
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
       setReason("");
     } catch (err) {
       handleError(err, "Transfer request failed");

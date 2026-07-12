@@ -25,6 +25,15 @@ app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), router);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, (err) => {
+  if (err) {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${env.PORT} is already in use. Kill the existing process with: kill $(lsof -ti :${env.PORT})`);
+    } else {
+      console.error('Failed to start server:', err.message);
+    }
+    process.exit(1);
+    return;
+  }
   console.log(`AssetFlow OS backend running on port ${env.PORT}`);
 });
