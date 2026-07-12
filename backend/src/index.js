@@ -17,7 +17,10 @@ app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), router);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ error: err.message || 'Internal server error' });
+  const status = err.status || err.statusCode || 500;
+  const error = err.error || err.message || 'Internal server error';
+  const details = err.details || undefined;
+  res.status(status).json({ error, ...(details && { details }) });
 });
 
 app.listen(env.PORT, () => {

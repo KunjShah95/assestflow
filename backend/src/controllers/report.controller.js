@@ -1,5 +1,5 @@
 import { db } from '../config/db.js';
-import { assets, allocations, bookings, maintenanceRequests, transfers } from '../models/schema.js';
+import { assets, allocations, bookings, maintenanceRequests, transfers, assetCategories } from '../models/schema.js';
 import { eq, and, ne, gte, lt, count, desc } from 'drizzle-orm';
 
 export async function kpi(req, res, next) {
@@ -33,5 +33,19 @@ export async function bookingHeatmap(req, res, next) {
   try {
     const all = await db.select().from(bookings).where(ne(bookings.status, 'cancelled'));
     res.json(all);
+  } catch (err) { next(err); }
+}
+
+export async function maintenanceFrequency(req, res, next) {
+  try {
+    const result = await db.select({
+      categoryId: assets.categoryId,
+      categoryName: assetCategories.name,
+      count: count(),
+    }).from(maintenanceRequests)
+      .innerJoin(assets, eq(maintenanceRequests.assetId, assets.id))
+      .innerJoin(assetCategories, eq(assets.categoryId, assetCategories.id))
+      .groupBy(assets.categoryId, assetCategories.name);
+    res.json(result);
   } catch (err) { next(err); }
 }
