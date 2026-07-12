@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { maintenanceService } from "@/services/maintenance.service";
+import type { MaintenanceRequest } from "@/types/maintenance";
+import { Search, Plus, CheckCircle, Calendar, Wrench } from "lucide-react";
 
 interface MaintenanceCard {
   id: string;
@@ -48,18 +50,19 @@ export default function MaintenancePage() {
         const inProgress: MaintenanceCard[] = [];
         const resolved: MaintenanceCard[] = [];
 
-        (requests || []).forEach((r: any) => {
+        (requests || []).forEach((req: MaintenanceRequest) => {
+          const r = req as MaintenanceRequest & Record<string, unknown>;
           const card: MaintenanceCard = {
-            id: `AF-${String(r.assetId || r.id).padStart(4, "0")}`,
-            title: r.description || "No description",
-            priority: r.priority === "high" ? "High" : r.priority === "medium" ? "Med" : "Low",
-            priorityColor: r.priority === "high" ? "bg-danger/10 text-danger" : r.priority === "medium" ? "bg-warning/10 text-warning" : "bg-surface-container-highest text-text-secondary",
-            date: r.createdAt ? `Reported: ${new Date(r.createdAt).toLocaleDateString()}` : "Recently",
+            id: `AF-${String(req.assetId || req.id).padStart(4, "0")}`,
+            title: req.description || "No description",
+            priority: req.priority === "high" ? "High" : req.priority === "medium" ? "Med" : "Low",
+            priorityColor: req.priority === "high" ? "bg-danger/10 text-danger" : req.priority === "medium" ? "bg-warning/10 text-warning" : "bg-surface-container-highest text-text-secondary",
+            date: req.createdAt ? `Reported: ${new Date(req.createdAt).toLocaleDateString()}` : "Recently",
           };
-          if (r.status === "pending") pending.push(card);
-          else if (r.status === "approved") approved.push({ ...card, assignee: r.assignedTechnician || "Unassigned", borderLeft: true });
-          else if (r.status === "in_progress") inProgress.push({ ...card, assignee: r.assignedTechnician || "Tech assigned", avatar: "T" });
-          else if (r.status === "resolved") resolved.push({ ...card, completed: `Completed: ${r.resolvedAt ? new Date(r.resolvedAt).toLocaleDateString() : "Recently"}` });
+          if (req.status === "pending") pending.push(card);
+          else if (req.status === "approved") approved.push({ ...card, assignee: (r.assignedTechnician as string) || "Unassigned", borderLeft: true });
+          else if (req.status === "in_progress") inProgress.push({ ...card, assignee: (r.assignedTechnician as string) || "Tech assigned", avatar: "T" });
+          else if (req.status === "resolved") resolved.push({ ...card, completed: `Completed: ${r.resolvedAt ? new Date(r.resolvedAt as string).toLocaleDateString() : "Recently"}` });
         });
 
         setColumns([
@@ -123,11 +126,11 @@ export default function MaintenancePage() {
         </div>
         <div className="flex gap-standard">
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" style={{ fontSize: 18 }}>search</span>
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
             <input className="pl-10 pr-4 py-2 border border-border-subtle rounded bg-surface-container-lowest text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64 transition-shadow" placeholder="Search tasks..." type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           </div>
           <button onClick={() => setIsModalOpen(true)} className="bg-primary text-on-primary px-4 py-2 rounded text-label-md flex items-center gap-2 hover:bg-primary/90 transition-colors font-medium shadow-sm">
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+            <Plus size={18} />
             New Request
           </button>
         </div>
@@ -150,7 +153,7 @@ export default function MaintenancePage() {
                         <div key={card.id} onClick={() => showToast(`Resolved task: ${card.title}`, "info")} className="bg-success/5 border border-success/20 rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-sm">
                           <div className="flex justify-between items-start"><span className="text-mono-data font-bold text-text-secondary line-through">{card.id}</span></div>
                           <div className="text-label-md text-text-secondary">{card.title}</div>
-                          <div className="flex items-center gap-1 text-success mt-2"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span><span className="text-[11px] font-medium">{card.completed}</span></div>
+                          <div className="flex items-center gap-1 text-success mt-2"><CheckCircle size={14} /><span className="text-[11px] font-medium">{card.completed}</span></div>
                         </div>
                       );
                     }
@@ -161,10 +164,10 @@ export default function MaintenancePage() {
                           {card.priority && <span className={`${card.priorityColor} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider`}>{card.priority}</span>}
                         </div>
                         <div className="text-label-md text-text-primary line-clamp-2">{card.title}</div>
-                        {card.date && <div className="flex items-center gap-1 text-text-secondary mt-2"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span><span className="text-[11px]">{card.date}</span></div>}
+                        {card.date && <div className="flex items-center gap-1 text-text-secondary mt-2"><Calendar size={14} /><span className="text-[11px]">{card.date}</span></div>}
                         {card.assignee && (
                           <div className="mt-2 pt-2 border-t border-border-subtle flex justify-between items-center">
-                            <div className={`flex items-center gap-1 ${card.avatar ? "text-primary" : "text-text-secondary"}`}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>engineering</span><span className="text-[11px] font-medium">{card.assignee}</span></div>
+                            <div className={`flex items-center gap-1 ${card.avatar ? "text-primary" : "text-text-secondary"}`}><Wrench size={14} /><span className="text-[11px] font-medium">{card.assignee}</span></div>
                             {card.avatar && <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-text-secondary">{card.avatar}</div>}
                           </div>
                         )}

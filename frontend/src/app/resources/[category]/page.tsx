@@ -3,6 +3,7 @@
 import { use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Briefcase, Rss, Shield, ArrowRight } from "lucide-react";
 
 const pagesContent: Record<string, { title: string; subtitle: string; desc: string; icon: string; items: { title: string; meta: string; summary: string }[] }> = {
   "case-studies": {
@@ -61,6 +62,12 @@ const pagesContent: Record<string, { title: string; subtitle: string; desc: stri
   }
 };
 
+const iconMap: Record<string, typeof Briefcase> = {
+  work_history: Briefcase,
+  rss_feed: Rss,
+  security: Shield,
+};
+
 export default function ResourcesPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = use(params);
   const content = pagesContent[category];
@@ -69,12 +76,14 @@ export default function ResourcesPage({ params }: { params: Promise<{ category: 
     notFound();
   }
 
+  const Icon = iconMap[content.icon] || Briefcase;
+
   return (
     <div className="min-h-screen pt-24 pb-section-padding text-left">
       <div className="max-w-container-max mx-auto px-margin-desktop relative z-10">
         <div className="mb-12">
           <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 text-primary">
-            <span className="material-symbols-outlined">{content.icon}</span>
+            <Icon size={24} />
           </div>
           <h1 className="text-headline-section font-bold text-text-primary mb-2">{content.title}</h1>
           <p className="text-primary font-semibold text-md mb-4">{content.subtitle}</p>
@@ -89,7 +98,7 @@ export default function ResourcesPage({ params }: { params: Promise<{ category: 
               <p className="text-text-secondary text-sm leading-relaxed mb-4">{item.summary}</p>
               <Link href="#" className="text-primary font-bold text-sm inline-flex items-center gap-1 hover:underline">
                 Read Article
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <ArrowRight size={16} />
               </Link>
             </div>
           ))}

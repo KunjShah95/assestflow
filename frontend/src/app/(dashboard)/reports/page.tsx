@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { reportService } from "@/services/report.service";
+import { Download, TrendingUp, AlertTriangle, DoorOpen, Car, Video, Camera, ArmchairIcon, Printer } from "lucide-react";
 
 interface KpiData {
   availableAssets: number;
@@ -13,6 +14,18 @@ interface KpiData {
   pendingTransfers: number;
   overdueReturns: number;
 }
+
+const usageIconMap: Record<string, typeof DoorOpen> = {
+  meeting_room: DoorOpen,
+  directions_car: Car,
+  videocam: Video,
+};
+
+const idleIconMap: Record<string, typeof Camera> = {
+  photo_camera: Camera,
+  chair: ArmchairIcon,
+  print: Printer,
+};
 
 export default function ReportsPage() {
   const { showToast } = useToast();
@@ -45,6 +58,16 @@ export default function ReportsPage() {
     return <div className="flex-1 flex items-center justify-center min-h-[60vh]"><div className="text-text-secondary animate-pulse font-medium">Loading reports...</div></div>;
   }
 
+  const UsageIcon = ({ icon }: { icon: string }) => {
+    const Icon = usageIconMap[icon] || DoorOpen;
+    return <Icon size={20} className="text-primary" />;
+  };
+
+  const IdleIcon = ({ icon }: { icon: string }) => {
+    const Icon = idleIconMap[icon] || Camera;
+    return <Icon size={20} className="text-text-secondary" />;
+  };
+
   return (
     <div className="flex-1 overflow-y-auto bg-background p-container animate-fade-in">
       <div className="flex justify-between items-end mb-8">
@@ -54,11 +77,10 @@ export default function ReportsPage() {
         </div>
         <button onClick={() => setIsExportModalOpen(true)}
           className="bg-primary hover:bg-primary/90 text-on-primary text-label-md py-2 px-4 rounded transition-colors flex items-center shadow-sm font-medium">
-          <span className="material-symbols-outlined text-[18px] mr-2">download</span>Export Report
+          <Download size={18} className="mr-2" />Export Report
         </button>
       </div>
 
-      {/* KPI Summary Cards */}
       {kpi && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           {[
@@ -77,9 +99,7 @@ export default function ReportsPage() {
         </div>
       )}
 
-      {/* Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-comfortable">
-        {/* Utilization Chart */}
         <div onClick={() => showToast("Department Utilization: Real-time data", "info")}
           className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable lg:col-span-2 cursor-pointer hover:shadow-md transition-shadow">
           <h3 className="text-headline-sm mb-4">Utilization by Department</h3>
@@ -103,7 +123,6 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Maintenance Frequency */}
         <div onClick={() => showToast("Maintenance Frequency data from system", "info")}
           className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable cursor-pointer hover:shadow-md transition-shadow">
           <h3 className="text-headline-sm mb-4">Maintenance Frequency</h3>
@@ -124,11 +143,10 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Most Used Assets */}
         <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-headline-sm">Most Used Assets</h3>
-            <span className="material-symbols-outlined text-text-secondary text-[20px]">trending_up</span>
+            <TrendingUp size={20} className="text-text-secondary" />
           </div>
           <ul className="space-y-4">
             {[
@@ -138,18 +156,17 @@ export default function ReportsPage() {
             ].map((item) => (
               <li key={item.name} onClick={() => showToast(`Usage insight: ${item.name} (${item.sub})`, "info")}
                 className="flex items-start cursor-pointer hover:bg-surface-container-low p-2 rounded transition-colors">
-                <div className="bg-surface-container-low p-2 rounded mr-3"><span className="material-symbols-outlined text-primary text-[20px]">{item.icon}</span></div>
+                <div className="bg-surface-container-low p-2 rounded mr-3"><UsageIcon icon={item.icon} /></div>
                 <div><p className="text-body-sm font-medium text-text-primary">{item.name}</p><p className="text-mono-data text-text-secondary">{item.sub}</p></div>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Idle Assets */}
         <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-headline-sm">Idle Assets</h3>
-            <span className="material-symbols-outlined text-warning text-[20px]">warning</span>
+            <AlertTriangle size={20} className="text-warning" />
           </div>
           <ul className="space-y-4">
             {[
@@ -159,14 +176,13 @@ export default function ReportsPage() {
             ].map((item) => (
               <li key={item.name} onClick={() => showToast(`Idle alert: ${item.name}`, "warning")}
                 className="flex items-start cursor-pointer hover:bg-surface-container-low p-2 rounded transition-colors">
-                <div className="bg-surface-container-low p-2 rounded mr-3"><span className="material-symbols-outlined text-text-secondary text-[20px]">{item.icon}</span></div>
+                <div className="bg-surface-container-low p-2 rounded mr-3"><IdleIcon icon={item.icon} /></div>
                 <div><p className="text-body-sm font-medium text-text-primary">{item.name}</p><p className="text-mono-data text-text-secondary">{item.sub}</p></div>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Maintenance / Retirement Action */}
         <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable lg:col-span-1">
           <h3 className="text-headline-sm mb-4">Maintenance / Retirement Action Required</h3>
           <div className="space-y-5">

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
 import { activityService } from "@/services/activity.service";
+import type { ActivityLog } from "@/types/activity";
+import { Search, Laptop, ArrowLeftRight, Wrench, ShieldCheck, Calendar, Verified, UserPlus, Settings, PlusCircle, Info, History } from "lucide-react";
 
 interface LogEntry {
   id: string;
@@ -30,6 +32,19 @@ const actionCategoryMap: Record<string, { category: string; icon: string; iconCo
   create: { category: "System", icon: "add_circle", iconColor: "bg-info/10 text-info" },
 };
 
+const iconComponentMap: Record<string, typeof Laptop> = {
+  laptop_mac: Laptop,
+  swap_horiz: ArrowLeftRight,
+  build: Wrench,
+  shield_person: ShieldCheck,
+  calendar_today: Calendar,
+  verified_user: Verified,
+  person_add: UserPlus,
+  settings: Settings,
+  add_circle: PlusCircle,
+  info: Info,
+};
+
 export default function ActivityPage() {
   const { showToast } = useToast();
 
@@ -42,7 +57,7 @@ export default function ActivityPage() {
     async function fetchLogs() {
       try {
         const activityLogs = await activityService.logs();
-        const mapped: LogEntry[] = (activityLogs || []).slice(0, 50).map((log: any) => {
+        const mapped: LogEntry[] = (activityLogs || []).slice(0, 50).map((log: ActivityLog) => {
           const action = (log.action || "").toLowerCase();
           let matched = actionCategoryMap[action];
           if (!matched) {
@@ -58,7 +73,7 @@ export default function ActivityPage() {
             icon: matched.icon,
             iconColor: matched.iconColor,
             title: `${log.action || "Activity"} - ${log.entityType || ""} #${log.entityId || log.id}`,
-            desc: typeof log.details === 'string' ? log.details : (log.details?.message || JSON.stringify(log.details || "")),
+            desc: log.details ?? "",
             time: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Recently",
             user: `User #${log.employeeId}`,
           };
@@ -94,6 +109,11 @@ export default function ActivityPage() {
     return <div className="flex-1 flex items-center justify-center min-h-[60vh]"><div className="text-text-secondary animate-pulse font-medium">Loading activity logs...</div></div>;
   }
 
+  const ActivityIcon = ({ icon }: { icon: string }) => {
+    const Icon = iconComponentMap[icon] || Info;
+    return <Icon size={20} />;
+  };
+
   return (
     <div className="flex-1 overflow-y-auto bg-surface p-container animate-fade-in">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -102,7 +122,7 @@ export default function ActivityPage() {
           <p className="text-body-sm text-text-secondary mt-1">Real-time chronological log of system actions, allocations, and alerts.</p>
         </div>
         <div className="relative w-full md:w-72">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[20px]">search</span>
+          <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
           <input className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-border-subtle rounded text-body-sm text-text-primary focus:border-primary outline-none" placeholder="Search activity trail..." type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
       </div>
@@ -125,7 +145,7 @@ export default function ActivityPage() {
               <div key={item.id} onClick={() => showToast(`Log detail: ${item.title} (${item.user})`, "info")}
                 className="p-comfortable flex items-start gap-4 hover:bg-surface-container-low transition-colors cursor-pointer group">
                 <div className={`w-10 h-10 rounded-full ${item.iconColor} flex items-center justify-center shrink-0 mt-0.5`}>
-                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                  <ActivityIcon icon={item.icon} />
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
@@ -141,7 +161,7 @@ export default function ActivityPage() {
         </div>
         <div className="p-4 bg-surface-container-low border-t border-border-subtle text-center">
           <button onClick={handleLoadMore} className="text-label-md text-primary hover:underline font-semibold flex items-center justify-center gap-1 mx-auto">
-            <span className="material-symbols-outlined text-[18px]">history</span>Load Historical Activity
+            <History size={18} />Load Historical Activity
           </button>
         </div>
       </div>

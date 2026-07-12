@@ -1,19 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { LogOut, X, Menu } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Close mobile menu on path changes
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   const guestLinks = [
     { label: "Product", href: "/product" },
@@ -37,7 +33,7 @@ export default function Navbar() {
   const activeLinks = user ? authLinks : guestLinks;
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-border">
+    <nav key={pathname} className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-border">
       <div className="max-w-container-max mx-auto px-margin-desktop flex items-center justify-between h-16">
         <div className="flex items-center gap-8">
           <Link className="text-headline-card font-headline-card font-bold text-text-primary" href="/">
@@ -73,7 +69,7 @@ export default function Navbar() {
                 onClick={logout}
                 className="bg-white border border-border text-text-primary px-5 py-2.5 rounded-full font-button text-button hover:border-text-primary transition-all shadow-sm flex items-center gap-1.5"
               >
-                <span className="material-symbols-outlined text-[18px]">logout</span>
+                <LogOut size={18} />
                 Log Out
               </button>
             </div>
@@ -97,9 +93,7 @@ export default function Navbar() {
             className="xl:hidden p-2 text-text-primary hover:text-primary transition-colors focus:outline-none"
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
-              {mobileMenuOpen ? "close" : "menu"}
-            </span>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
@@ -130,7 +124,7 @@ export default function Navbar() {
                 onClick={logout}
                 className="w-full bg-white border border-border text-text-primary px-4 py-2 rounded-full font-button text-button hover:border-text-primary transition-all text-center flex items-center justify-center gap-2"
               >
-                <span className="material-symbols-outlined text-[18px]">logout</span>
+                <LogOut size={18} />
                 Log Out
               </button>
             </div>

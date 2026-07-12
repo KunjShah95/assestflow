@@ -1,2 +1,8 @@
 /.kombai
 /.qodo
+
+# Server / build logs
+*.log
+
+# Docs
+docs/

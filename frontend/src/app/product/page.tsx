@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShieldCheck, Factory, Receipt, ArrowRight } from "lucide-react";
 
 export default function ProductPage() {
   const features = [
@@ -27,6 +28,12 @@ export default function ProductPage() {
     }
   ];
 
+  const iconMap: Record<string, typeof ShieldCheck> = {
+    verified_user: ShieldCheck,
+    precision_manufacturing: Factory,
+    receipt_long: Receipt,
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-section-padding text-left">
       <div className="max-w-container-max mx-auto px-margin-desktop relative z-10">
@@ -39,32 +46,32 @@ export default function ProductPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-gutter mb-20">
-          {features.map((feature, i) => (
-            <div
-              key={feature.title}
-              className="bg-white p-8 rounded-[20px] border border-border shadow-sm hover:shadow-lg transition-all duration-300 group flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-14 h-14 bg-surface rounded-xl flex items-center justify-center mb-8 group-hover:bg-primary transition-colors">
-                  <span className="material-symbols-outlined text-primary group-hover:text-white" style={{ fontSize: "32px" }}>
-                    {feature.icon}
-                  </span>
+          {features.map((feature) => {
+            const Icon = iconMap[feature.icon] || ShieldCheck;
+            return (
+              <div
+                key={feature.title}
+                className="bg-white p-8 rounded-[20px] border border-border shadow-sm hover:shadow-lg transition-all duration-300 group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-14 h-14 bg-surface rounded-xl flex items-center justify-center mb-8 group-hover:bg-primary transition-colors">
+                    <Icon size={32} className="text-primary group-hover:text-white" />
+                  </div>
+                  <h3 className="font-headline-card text-headline-card mb-3">{feature.title}</h3>
+                  <p className="text-text-secondary mb-8">{feature.desc}</p>
                 </div>
-                <h3 className="font-headline-card text-headline-card mb-3">{feature.title}</h3>
-                <p className="text-text-secondary mb-8">{feature.desc}</p>
+                <div className="pt-6 border-t border-divider flex items-center justify-between">
+                  <span className="text-primary font-bold text-lg">{feature.badge}</span>
+                  <Link href={feature.href} className="text-primary font-bold flex items-center gap-1 hover:underline">
+                    Learn More
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
               </div>
-              <div className="pt-6 border-t border-divider flex items-center justify-between">
-                <span className="text-primary font-bold text-lg">{feature.badge}</span>
-                <Link href={feature.href} className="text-primary font-bold flex items-center gap-1 hover:underline">
-                  Learn More
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Call to action section */}
         <div className="bg-primary rounded-[32px] p-12 text-white relative overflow-hidden group text-center mt-12">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
           <div className="relative z-10 max-w-3xl mx-auto">

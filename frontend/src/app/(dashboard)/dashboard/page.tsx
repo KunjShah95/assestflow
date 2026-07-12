@@ -1,11 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { reportService } from "@/services/report.service";
 import { activityService } from "@/services/activity.service";
+import type { ActivityLog } from "@/types/activity";
+import { AlertTriangle, Plus, Calendar, Headphones, Monitor, DoorOpen, Wrench, ArmchairIcon, Info, Package } from "lucide-react";
+
+const iconMap: Record<string, typeof Monitor> = {
+  computer: Monitor,
+  meeting_room: DoorOpen,
+  build: Wrench,
+  chair: ArmchairIcon,
+  info: Info,
+  inventory_2: Package,
+};
 
 interface ActivityItem {
   icon: string;
@@ -48,36 +59,39 @@ export default function DashboardPage() {
         ]);
         setKpi(kpiData);
 
-        const mapped = (logs || []).slice(0, 5).map((log: any) => ({
+        const mapped = (logs || []).slice(0, 5).map((log: ActivityLog) => ({
           icon: log.action?.toLowerCase().includes("alloc") ? "computer" :
                 log.action?.toLowerCase().includes("book") ? "meeting_room" :
                 log.action?.toLowerCase().includes("maintenance") ? "build" :
                 log.action?.toLowerCase().includes("return") ? "chair" : "info",
-          iconBg: log.action?.toLowerCase().includes("alloc") ? "bg-secondary-container text-primary" :
-                  log.action?.toLowerCase().includes("book") ? "bg-tertiary-container/20 text-tertiary" :
-                  log.action?.toLowerCase().includes("maintenance") ? "bg-success/10 text-success" :
-                  log.action?.toLowerCase().includes("return") ? "bg-secondary-container text-primary" :
-                  "bg-surface-container text-text-secondary",
+          iconBg: log.action?.toLowerCase().includes("alloc") ? "bg-[#EEF2FF] text-[#4F46E5]" :
+                  log.action?.toLowerCase().includes("book") ? "bg-[#F0F9FF] text-[#0284C7]" :
+                  log.action?.toLowerCase().includes("maintenance") ? "bg-[#F0FDF4] text-[#16A34A]" :
+                  log.action?.toLowerCase().includes("return") ? "bg-[#EEF2FF] text-[#4F46E5]" :
+                  "bg-[#F1F5F9] text-[#475569]",
           title: `${log.action || "Activity"} #${log.id}`,
-          desc: log.details || `${log.entityType || "Entity"} updated`,
+          desc: typeof log.details === 'string'
+            ? log.details
+            : log.details
+              ? JSON.stringify(log.details)
+              : `${log.entityType || "Entity"} updated`,
           time: log.createdAt ? new Date(log.createdAt).toLocaleDateString() : "Recently",
         }));
 
         if (mapped.length === 0) {
           setRecentActivities([
-            { icon: "computer", iconBg: "bg-secondary-container text-primary", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
-            { icon: "meeting_room", iconBg: "bg-tertiary-container/20 text-tertiary", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
+            { icon: "computer", iconBg: "bg-[#EEF2FF] text-[#4F46E5]", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
+            { icon: "meeting_room", iconBg: "bg-[#F0F9FF] text-[#0284C7]", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
           ]);
         } else {
           setRecentActivities(mapped);
         }
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
-        // Fallback mock data
         setKpi({ availableAssets: 128, allocatedAssets: 76, activeBookings: 9, pendingTransfers: 3, overdueReturns: 2 });
         setRecentActivities([
-          { icon: "computer", iconBg: "bg-secondary-container text-primary", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
-          { icon: "meeting_room", iconBg: "bg-tertiary-container/20 text-tertiary", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
+          { icon: "computer", iconBg: "bg-[#EEF2FF] text-[#4F46E5]", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
+          { icon: "meeting_room", iconBg: "bg-[#F0F9FF] text-[#0284C7]", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
         ]);
       } finally {
         setLoading(false);
@@ -114,25 +128,26 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-        <div className="text-text-secondary animate-pulse font-medium">Loading dashboard...</div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-[#475569] animate-pulse font-medium">Loading dashboard...</div>
       </div>
     );
   }
 
+  const DynamicIcon = ({ name, size = 16 }: { name: string; size?: number }) => {
+    const Icon = iconMap[name] || Info;
+    return <Icon size={size} />;
+  };
+
   return (
-    <div className="flex-1 overflow-y-auto p-container pb-24 animate-fade-in">
-      {/* Page Header */}
+    <div>
       <div className="flex justify-between items-end mb-6">
         <div>
-          <h1 className="text-headline-lg text-text-primary">Today&apos;s Overview</h1>
-          <p className="text-body-sm text-text-secondary mt-1">
-            Real-time status of your enterprise assets.
-          </p>
+          <h1 className="text-[#0F172A] text-[24px] font-bold tracking-tight">Today&apos;s Overview</h1>
+          <p className="text-[#475569] text-[14px] mt-1">Real-time status of your enterprise assets.</p>
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Available", value: kpi?.availableAssets ?? 0, route: "/assets" },
@@ -143,108 +158,88 @@ export default function DashboardPage() {
           <div
             key={card.label}
             onClick={() => router.push(card.route)}
-            className="bg-surface-container-lowest border border-border-subtle rounded-lg p-standard flex flex-col hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
+            className="bg-white border border-[#E2E8F0] rounded-lg p-5 flex flex-col hover:shadow-md hover:border-[#2563EB]/50 transition-all cursor-pointer"
           >
-            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2">
-              {card.label}
-            </span>
-            <span className="text-headline-lg text-text-primary font-bold">
-              {card.value}
-            </span>
+            <span className="text-[11px] text-[#475569] uppercase tracking-wider font-semibold mb-2">{card.label}</span>
+            <span className="text-[24px] text-[#0F172A] font-bold">{card.value}</span>
           </div>
         ))}
       </div>
 
-      {/* Alert Banner */}
       {(kpi?.overdueReturns ?? 0) > 0 && (
         <div
           onClick={() => router.push("/activity")}
-          className="bg-error-container text-on-error-container border border-error/20 rounded-lg p-standard flex items-center justify-between gap-3 mb-8 cursor-pointer hover:bg-error-container/80 transition-colors"
+          className="bg-[#FEF2F2] text-[#991B1B] border border-[#EF4444]/20 rounded-lg p-4 flex items-center justify-between gap-3 mb-8 cursor-pointer hover:bg-[#FEF2F2]/80 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined">warning</span>
-            <span className="text-body-md font-medium">
+            <AlertTriangle size={18} />
+            <span className="text-[14px] font-medium">
               {kpi?.overdueReturns} asset(s) overdue for return – flagged for follow-up
             </span>
           </div>
-          <span className="text-label-md font-bold underline">Review Alerts</span>
+          <span className="text-[13px] font-bold underline">Review Alerts</span>
         </div>
       )}
 
-      {/* Primary Actions */}
-      <div className="flex flex-wrap gap-4 mb-8">
+      <div className="flex flex-wrap gap-3 mb-8">
         <button
           onClick={() => setIsRegisterOpen(true)}
-          className="bg-primary text-on-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm"
+          className="bg-[#2563EB] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-[#1D4ED8] transition-colors shadow-sm"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            add
-          </span>
+          <Plus size={16} />
           Register Asset
         </button>
         <button
           onClick={() => router.push("/booking")}
-          className="border border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-surface-container-low transition-colors"
+          className="border border-[#E2E8F0] bg-white text-[#0F172A] text-[13px] font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-[#F8FAFC] transition-colors"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            event
-          </span>
+          <Calendar size={16} />
           Book Resource
         </button>
         <button
           onClick={() => router.push("/maintenance")}
-          className="border border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-surface-container-low transition-colors"
+          className="border border-[#E2E8F0] bg-white text-[#0F172A] text-[13px] font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-[#F8FAFC] transition-colors"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            support_agent
-          </span>
+          <Headphones size={16} />
           Raise Requests
         </button>
       </div>
 
-      {/* Recent Activity Table */}
-      <div className="bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden">
-        <div className="px-comfortable py-standard border-b border-border-subtle bg-surface-bright flex justify-between items-center">
-          <h2 className="text-headline-sm text-text-primary">Recent Activity</h2>
+      <div className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex justify-between items-center">
+          <h2 className="text-[#0F172A] text-[16px] font-semibold">Recent Activity</h2>
           <button
             onClick={() => router.push("/activity")}
-            className="text-label-md text-primary hover:underline"
+            className="text-[13px] text-[#2563EB] hover:underline font-medium"
           >
             View All Logs
           </button>
         </div>
-        <div className="divide-y divide-border-subtle">
+        <div className="divide-y divide-[#E2E8F0]">
           {recentActivities.slice(0, 5).map((item, i) => (
             <div
               key={i}
               onClick={() => showToast(`Activity details: ${item.title} - ${item.desc}`, "info")}
-              className="px-comfortable py-standard flex items-start gap-4 hover:bg-surface-container transition-colors group cursor-pointer"
+              className="px-6 py-4 flex items-start gap-4 hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
             >
-              <div
-                className={`w-8 h-8 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-1`}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  {item.icon}
-                </span>
+              <div className={`w-8 h-8 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
+                <DynamicIcon name={item.icon} size={16} />
               </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-label-md text-text-primary font-bold">
-                    {item.title}
-                  </span>
-                  <span className="text-mono-data text-text-secondary">{item.time}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start mb-0.5">
+                  <span className="text-[14px] text-[#0F172A] font-semibold truncate">{item.title}</span>
+                  <span className="text-[11px] text-[#94A3B8] font-mono shrink-0 ml-3">{item.time}</span>
                 </div>
-                <p className="text-body-sm text-text-secondary">{item.desc}</p>
+                <p className="text-[13px] text-[#475569] leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
           {recentActivities.length === 0 && (
-            <div className="p-8 text-center text-text-secondary">No recent activity</div>
+            <div className="p-8 text-center text-[#475569]">No recent activity</div>
           )}
         </div>
       </div>
 
-      {/* Register Asset Modal */}
       <Modal
         isOpen={isRegisterOpen}
         onClose={() => setIsRegisterOpen(false)}
@@ -252,78 +247,30 @@ export default function DashboardPage() {
       >
         <form onSubmit={handleRegisterAsset} className="space-y-4">
           <div>
-            <label className="block text-label-md mb-1" htmlFor="asset-tag">
-              Asset Tag ID
-            </label>
-            <input
-              id="asset-tag"
-              type="text"
-              value={newAsset.tag}
-              onChange={(e) => setNewAsset({ ...newAsset, tag: e.target.value })}
-              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md font-mono"
-            />
+            <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-tag">Asset Tag ID</label>
+            <input id="asset-tag" type="text" value={newAsset.tag} onChange={(e) => setNewAsset({ ...newAsset, tag: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] font-mono focus:border-[#2563EB] outline-none" />
           </div>
           <div>
-            <label className="block text-label-md mb-1" htmlFor="asset-name">
-              Equipment Name
-            </label>
-            <input
-              id="asset-name"
-              type="text"
-              placeholder="e.g. MacBook Pro M3 16-inch"
-              value={newAsset.name}
-              onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })}
-              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-            />
+            <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-name">Equipment Name</label>
+            <input id="asset-name" type="text" placeholder="e.g. MacBook Pro M3 16-inch" value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-label-md mb-1" htmlFor="asset-category">
-                Category
-              </label>
-              <select
-                id="asset-category"
-                value={newAsset.category}
-                onChange={(e) => setNewAsset({ ...newAsset, category: e.target.value })}
-                className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-              >
-                <option value="Electronics">Electronics</option>
-                <option value="Furniture">Furniture</option>
-                <option value="Networking">Networking</option>
-                <option value="Vehicles">Vehicles</option>
+              <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-category">Category</label>
+              <select id="asset-category" value={newAsset.category} onChange={(e) => setNewAsset({ ...newAsset, category: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none">
+                <option>Electronics</option><option>Furniture</option><option>Networking</option><option>Vehicles</option>
               </select>
             </div>
             <div>
-              <label className="block text-label-md mb-1" htmlFor="asset-location">
-                Location
-              </label>
-              <select
-                id="asset-location"
-                value={newAsset.location}
-                onChange={(e) => setNewAsset({ ...newAsset, location: e.target.value })}
-                className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-              >
-                <option value="Bengaluru, BLR-01">Bengaluru, BLR-01</option>
-                <option value="Mumbai, Server Rm 1">Mumbai, Server Rm 1</option>
-                <option value="HQ, Floor 2">HQ, Floor 2</option>
-                <option value="Warehouse A">Warehouse A</option>
+              <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-location">Location</label>
+              <select id="asset-location" value={newAsset.location} onChange={(e) => setNewAsset({ ...newAsset, location: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none">
+                <option>Bengaluru, BLR-01</option><option>Mumbai, Server Rm 1</option><option>HQ, Floor 2</option><option>Warehouse A</option>
               </select>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsRegisterOpen(false)}
-              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90"
-            >
-              Register Asset
-            </button>
+            <button type="button" onClick={() => setIsRegisterOpen(false)} className="px-4 py-2 rounded-lg text-[13px] font-medium border border-[#E2E8F0] hover:bg-[#F8FAFC]">Cancel</button>
+            <button type="submit" className="px-4 py-2 rounded-lg text-[13px] font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8]">Register Asset</button>
           </div>
         </form>
       </Modal>

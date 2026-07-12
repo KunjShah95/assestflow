@@ -4,6 +4,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { assetService } from "@/services/asset.service";
+import type { Asset, AssetCategory } from "@/types/asset";
+import { Search, Plus, ChevronDown, FilterX, ArrowDown, Package, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface AssetItem {
   tag: string;
@@ -40,12 +42,12 @@ export default function AssetsPage() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  const [newAsset, setNewAsset] = useState({
+  const [newAsset, setNewAsset] = useState(() => ({
     name: "",
     category: "Electronics",
     location: "Bengaluru, BLR-01",
     tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
-  });
+  }));
 
   useEffect(() => {
     async function fetchData() {
@@ -55,11 +57,11 @@ export default function AssetsPage() {
           assetService.categories(),
         ]);
 
-        const mapped: AssetItem[] = (items || []).map((a: any) => ({
-          tag: a.assetTag || a.tag || "",
+        const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
+          tag: a.tag || "",
           name: a.name || "",
           icon: "inventory_2",
-          category: cats?.find((c: any) => c.id === a.categoryId)?.name || "General",
+          category: cats?.find((c: AssetCategory) => c.id === a.categoryId)?.name || "General",
           status: a.status || "available",
           statusColor: statusToColor[a.status] || "success",
           location: a.location || "",
@@ -67,7 +69,7 @@ export default function AssetsPage() {
         }));
 
         setAssets(mapped);
-        setCategories(["All", ...new Set((cats || []).map((c: any) => c.name))]);
+        setCategories(["All", ...new Set((cats || []).map((c: AssetCategory) => c.name))]);
       } catch (err) {
         console.error("Failed to load assets:", err);
         showToast("Could not load assets from server", "error");
@@ -114,10 +116,9 @@ export default function AssetsPage() {
         categoryId: categories.indexOf(newAsset.category) + 1 || 1,
         location: newAsset.location,
       });
-      // Reload assets
       const items = await assetService.list();
-      const mapped: AssetItem[] = (items || []).map((a: any) => ({
-        tag: a.assetTag || a.tag || "",
+      const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
+        tag: a.tag || "",
         name: a.name || "",
         icon: "inventory_2",
         category: "General",
@@ -155,7 +156,7 @@ export default function AssetsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] flex-1">
         <div className="text-text-secondary animate-pulse font-medium">Loading assets...</div>
       </div>
     );
@@ -163,7 +164,6 @@ export default function AssetsPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden animate-fade-in" onClick={() => setActiveDropdown(null)}>
-      {/* Header */}
       <header className="bg-surface-container-lowest border-b border-border-subtle px-container py-comfortable shrink-0 z-10 flex flex-col md:flex-row md:items-center justify-between gap-comfortable shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
         <div>
           <h1 className="text-headline-lg text-text-primary tracking-tight">Asset Directory</h1>
@@ -173,9 +173,7 @@ export default function AssetsPage() {
         </div>
         <div className="flex items-center gap-standard">
           <div className="relative w-full md:w-64">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[20px]">
-              search
-            </span>
+            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
             <input
               className="w-full pl-10 pr-4 py-2 bg-surface border border-border-subtle rounded text-body-sm text-text-primary focus:border-primary focus:ring-1 focus:ring-primary transition-shadow placeholder:text-text-secondary/60 outline-none h-[36px]"
               placeholder="Search tag, name, location..."
@@ -188,13 +186,12 @@ export default function AssetsPage() {
             onClick={() => setIsRegisterOpen(true)}
             className="bg-primary text-on-primary hover:bg-primary/90 text-label-md px-comfortable py-2 rounded shadow-sm flex items-center gap-2 h-[36px] transition-colors whitespace-nowrap"
           >
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Plus size={18} />
             Register Asset
           </button>
         </div>
       </header>
 
-      {/* Filters */}
       <div className="bg-surface-container-lowest border-b border-border-subtle px-container py-standard shrink-0 flex gap-standard overflow-x-auto items-center">
         <span className="text-label-md text-text-secondary shrink-0 uppercase tracking-widest">Filters</span>
         <div className="h-4 w-px bg-border-subtle mx-1 shrink-0" />
@@ -207,7 +204,7 @@ export default function AssetsPage() {
             }`}
           >
             Category: {selectedCategory}
-            <span className="material-symbols-outlined text-[16px] text-text-secondary">arrow_drop_down</span>
+            <ChevronDown size={16} className="text-text-secondary" />
           </button>
           {activeDropdown === "Category" && (
             <div className="absolute top-full left-0 mt-1.5 w-44 bg-surface-container-lowest border border-border-subtle rounded-lg shadow-lg z-30 py-1">
@@ -232,7 +229,7 @@ export default function AssetsPage() {
             }`}
           >
             Status: {selectedStatus}
-            <span className="material-symbols-outlined text-[16px] text-text-secondary">arrow_drop_down</span>
+            <ChevronDown size={16} className="text-text-secondary" />
           </button>
           {activeDropdown === "Status" && (
             <div className="absolute top-full left-0 mt-1.5 w-44 bg-surface-container-lowest border border-border-subtle rounded-lg shadow-lg z-30 py-1">
@@ -254,25 +251,22 @@ export default function AssetsPage() {
             onClick={() => { setSearchQuery(""); setSelectedCategory("All"); setSelectedStatus("All"); showToast("Filters reset", "info"); }}
             className="text-text-secondary hover:text-primary text-label-md flex items-center gap-1 transition-colors"
           >
-            <span className="material-symbols-outlined text-[16px]">filter_list_off</span>
+            <FilterX size={16} />
             Clear All
           </button>
         </div>
       </div>
 
-      {/* Data Table */}
       <div className="flex-1 p-container overflow-hidden flex flex-col">
         <div className="bg-surface-container-lowest border border-border-subtle rounded-lg flex-1 flex flex-col overflow-hidden shadow-sm">
-          {/* Table Header */}
           <div className="grid grid-cols-12 gap-4 px-comfortable py-standard bg-surface-container-low border-b border-border-subtle text-label-md text-text-secondary uppercase tracking-wider shrink-0">
-            <div className="col-span-2 flex items-center gap-2">Tag ID<span className="material-symbols-outlined text-[14px] cursor-pointer hover:text-primary">arrow_downward</span></div>
+            <div className="col-span-2 flex items-center gap-2">Tag ID<ArrowDown size={14} className="cursor-pointer hover:text-primary" /></div>
             <div className="col-span-3">Asset Name</div>
             <div className="col-span-2">Category</div>
             <div className="col-span-2">Status</div>
             <div className="col-span-3">Location</div>
           </div>
 
-          {/* Table Body */}
           <div className="flex-1 overflow-y-auto">
             {filteredAssets.length === 0 ? (
               <div className="p-8 text-center text-text-secondary">No assets found matching current search and filters.</div>
@@ -285,7 +279,7 @@ export default function AssetsPage() {
                 >
                   <div className={`col-span-2 text-mono-data ${asset.faded ? "text-text-primary/70" : "text-text-primary"}`}>{asset.tag}</div>
                   <div className={`col-span-3 text-body-sm font-medium flex items-center gap-2 ${asset.faded ? "text-text-primary/70" : "text-text-primary"}`}>
-                    <span className={`material-symbols-outlined text-[18px] ${asset.faded ? "text-text-secondary/50" : "text-text-secondary"}`}>{asset.icon}</span>
+                    <Package size={18} className={asset.faded ? "text-text-secondary/50" : "text-text-secondary"} />
                     {asset.name}
                   </div>
                   <div className={`col-span-2 text-body-sm ${asset.faded ? "text-text-secondary/70" : "text-text-secondary"}`}>{asset.category}</div>
@@ -295,7 +289,7 @@ export default function AssetsPage() {
                   <div className={`col-span-3 text-body-sm flex items-center gap-1.5 justify-between ${asset.faded ? "text-text-secondary/70" : "text-text-secondary"}`}>
                     <span>{asset.location}</span>
                     <button onClick={(e) => { e.stopPropagation(); handleRowAction(asset, "retire"); }} className="opacity-0 group-hover:opacity-100 text-text-secondary hover:text-danger transition-all p-1 rounded hover:bg-surface-container" title="Retire Asset">
-                      <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                      <MoreHorizontal size={18} />
                     </button>
                   </div>
                 </div>
@@ -303,23 +297,21 @@ export default function AssetsPage() {
             )}
           </div>
 
-          {/* Pagination */}
           <div className="border-t border-border-subtle bg-surface-container-lowest p-comfortable flex items-center justify-between shrink-0">
             <span className="text-body-sm text-text-secondary">Showing {filteredAssets.length} of {assets.length} assets</span>
             <div className="flex items-center gap-2">
               <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} className="p-1 rounded text-text-secondary hover:bg-surface-container hover:text-primary disabled:opacity-50 transition-colors" disabled={currentPage === 1}>
-                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                <ChevronLeft size={20} />
               </button>
               <span className="text-label-md text-text-primary px-2">Page {currentPage} of {Math.max(1, Math.ceil(filteredAssets.length / 10))}</span>
               <button onClick={() => setCurrentPage((p) => p + 1)} className="p-1 rounded text-text-secondary hover:bg-surface-container hover:text-primary disabled:opacity-50 transition-colors" disabled={currentPage >= Math.ceil(filteredAssets.length / 10) || filteredAssets.length === 0}>
-                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                <ChevronRight size={20} />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Register Asset Modal */}
       <Modal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} title="Register New Enterprise Asset">
         <form onSubmit={handleRegisterAsset} className="space-y-4">
           <div>

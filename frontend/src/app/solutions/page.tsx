@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Plane, Factory, Truck, ArrowRight } from "lucide-react";
 
 export default function SolutionsPage() {
   const industries = [
@@ -30,6 +31,12 @@ export default function SolutionsPage() {
     }
   ];
 
+  const iconMap: Record<string, typeof Plane> = {
+    flight: Plane,
+    precision_manufacturing: Factory,
+    local_shipping: Truck,
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-section-padding text-left">
       <div className="max-w-container-max mx-auto px-margin-desktop relative z-10">
@@ -42,35 +49,38 @@ export default function SolutionsPage() {
         </div>
 
         <div className="space-y-12">
-          {industries.map((ind, i) => (
-            <div
-              key={ind.title}
-              className={`bg-white p-8 md:p-12 rounded-[24px] border border-border shadow-sm flex flex-col lg:flex-row items-center gap-12 hover:shadow-md transition-shadow ${
-                i % 2 === 1 ? "lg:flex-row-reverse" : ""
-              }`}
-            >
-              <div className="flex-1 text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary font-label-sm text-label-sm mb-4">
-                  <span className="material-symbols-outlined text-[18px]">{ind.icon}</span>
-                  {ind.title}
+          {industries.map((ind, i) => {
+            const Icon = iconMap[ind.icon] || Plane;
+            return (
+              <div
+                key={ind.title}
+                className={`bg-white p-8 md:p-12 rounded-[24px] border border-border shadow-sm flex flex-col lg:flex-row items-center gap-12 hover:shadow-md transition-shadow ${
+                  i % 2 === 1 ? "lg:flex-row-reverse" : ""
+                }`}
+              >
+                <div className="flex-1 text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary font-label-sm text-label-sm mb-4">
+                    <Icon size={18} />
+                    {ind.title}
+                  </div>
+                  <h2 className="text-headline-section text-headline-section mb-4 font-bold text-text-primary leading-tight">
+                    {ind.title}
+                  </h2>
+                  <p className="text-primary font-semibold mb-4 text-lg">{ind.tagline}</p>
+                  <p className="text-text-secondary text-body-lg mb-6 leading-relaxed">{ind.desc}</p>
+                  <Link href="/contact" className="bg-text-primary text-white px-6 py-3 rounded-full font-button text-button hover:bg-black transition-colors inline-flex items-center gap-2">
+                    Request Case Study
+                    <ArrowRight size={18} />
+                  </Link>
                 </div>
-                <h2 className="text-headline-section text-headline-section mb-4 font-bold text-text-primary leading-tight">
-                  {ind.title}
-                </h2>
-                <p className="text-primary font-semibold mb-4 text-lg">{ind.tagline}</p>
-                <p className="text-text-secondary text-body-lg mb-6 leading-relaxed">{ind.desc}</p>
-                <Link href="/contact" className="bg-text-primary text-white px-6 py-3 rounded-full font-button text-button hover:bg-black transition-colors inline-flex items-center gap-2">
-                  Request Case Study
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                </Link>
-              </div>
 
-              <div className="w-full lg:w-80 shrink-0 bg-surface border border-border p-8 rounded-2xl text-center flex flex-col justify-center items-center">
-                <span className="text-display-hero text-primary font-black mb-2 block">{ind.metric}</span>
-                <span className="text-text-secondary font-label-sm text-label-sm uppercase tracking-wider block">{ind.metricLabel}</span>
+                <div className="w-full lg:w-80 shrink-0 bg-surface border border-border p-8 rounded-2xl text-center flex flex-col justify-center items-center">
+                  <span className="text-display-hero text-primary font-black mb-2 block">{ind.metric}</span>
+                  <span className="text-text-secondary font-label-sm text-label-sm uppercase tracking-wider block">{ind.metricLabel}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CheckCircle, Lock, Zap } from "lucide-react";
 
 export default function AboutPage() {
   const values = [
@@ -20,6 +21,12 @@ export default function AboutPage() {
       icon: "bolt"
     }
   ];
+
+  const iconMap: Record<string, typeof CheckCircle> = {
+    task_alt: CheckCircle,
+    lock: Lock,
+    bolt: Zap,
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-section-padding text-left">
@@ -48,17 +55,20 @@ export default function AboutPage() {
 
           <div className="bg-white p-8 rounded-2xl border border-border shadow-sm space-y-6">
             <h3 className="font-bold text-headline-card text-text-primary border-b border-divider pb-4">Our Core Values</h3>
-            {values.map((v) => (
-              <div key={v.title} className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 text-primary">
-                  <span className="material-symbols-outlined">{v.icon}</span>
+            {values.map((v) => {
+              const Icon = iconMap[v.icon] || CheckCircle;
+              return (
+                <div key={v.title} className="flex gap-4 items-start">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 text-primary">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-text-primary text-md">{v.title}</h4>
+                    <p className="text-sm text-text-secondary mt-1">{v.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-text-primary text-md">{v.title}</h4>
-                  <p className="text-sm text-text-secondary mt-1">{v.desc}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
