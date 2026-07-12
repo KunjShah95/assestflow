@@ -51,7 +51,30 @@ export default function ReportsPage() {
 
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast(`Generating and exporting report as ${exportFormat}...`, "success");
+    try {
+      const header = "Metric,Value";
+      const rows = kpi
+        ? [
+            ["Available Assets", String(kpi.availableAssets)],
+            ["Allocated Assets", String(kpi.allocatedAssets)],
+            ["Active Bookings", String(kpi.activeBookings)],
+            ["Maintenance Today", String(kpi.maintenanceToday)],
+            ["Pending Transfers", String(kpi.pendingTransfers)],
+            ["Overdue Returns", String(kpi.overdueReturns)],
+          ]
+        : [];
+      const csv = "\uFEFF" + [header, ...rows.map((r) => r.map((v) => `"${v.replace(/"/g, '""')}"`).join(","))].join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const el = document.createElement("a");
+      el.href = URL.createObjectURL(blob);
+      el.download = `assetflow-report-${new Date().toISOString().slice(0, 10)}.${exportFormat === "CSV" ? "csv" : exportFormat === "PDF" ? "pdf" : "xls"}`;
+      document.body.appendChild(el);
+      el.click();
+      document.body.removeChild(el);
+      showToast(`Exported report as ${exportFormat}`, "success");
+    } catch {
+      showToast("Export failed", "error");
+    }
     setIsExportModalOpen(false);
   };
 
@@ -132,13 +155,16 @@ export default function ReportsPage() {
               <line stroke="#E2E8F0" strokeDasharray="2,2" strokeWidth="0.5" x1="0" x2="100" y1="25" y2="25" />
               <line stroke="#E2E8F0" strokeDasharray="2,2" strokeWidth="0.5" x1="0" x2="100" y1="50" y2="50" />
               <line stroke="#E2E8F0" strokeDasharray="2,2" strokeWidth="0.5" x1="0" x2="100" y1="75" y2="75" />
-              <path className="chart-area" d="M0,80 L20,60 L40,70 L60,30 L80,45 L100,10 L100,100 L0,100 Z" />
-              <path className="chart-line" d="M0,80 L20,60 L40,70 L60,30 L80,45 L100,10" />
-              <circle cx="20" cy="60" fill="#005c55" r="2" /><circle cx="40" cy="70" fill="#005c55" r="2" />
-              <circle cx="60" cy="30" fill="#005c55" r="2" /><circle cx="80" cy="45" fill="#005c55" r="2" />
-              <circle cx="100" cy="10" fill="#005c55" r="2" />
+              <path className="chart-area" d="M5,80 L23,60 L41,70 L59,30 L77,45 L95,10 L95,100 L5,100 Z" />
+              <path className="chart-line" d="M5,80 L23,60 L41,70 L59,30 L77,45 L95,10" />
+              <circle cx="5" cy="80" fill="#005c55" r="2" />
+              <circle cx="23" cy="60" fill="#005c55" r="2" />
+              <circle cx="41" cy="70" fill="#005c55" r="2" />
+              <circle cx="59" cy="30" fill="#005c55" r="2" />
+              <circle cx="77" cy="45" fill="#005c55" r="2" />
+              <circle cx="95" cy="10" fill="#005c55" r="2" />
             </svg>
-            <div className="absolute bottom-0 w-full flex justify-between text-text-secondary text-mono-data text-[10px] pt-2 border-t border-border-subtle">
+            <div className="absolute bottom-0 w-full flex justify-between text-text-secondary text-mono-data text-[10px] pt-2 border-t border-border-subtle px-[5%]">
               {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((m) => (<span key={m}>{m}</span>))}
             </div>
           </div>

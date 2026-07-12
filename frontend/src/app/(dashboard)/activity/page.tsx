@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useApiError } from "@/hooks/useApiError";
 import { activityService } from "@/services/activity.service";
 import type { ActivityLog } from "@/types/activity";
@@ -43,6 +43,11 @@ const iconComponentMap: Record<string, typeof Laptop> = {
   settings: Settings,
   add_circle: PlusCircle,
   info: Info,
+};
+
+const ActivityIcon = ({ icon }: { icon: string }) => {
+  const Icon = iconComponentMap[icon] || Info;
+  return <Icon size={20} />;
 };
 
 export default function ActivityPage() {
@@ -95,11 +100,14 @@ export default function ActivityPage() {
     fetchLogs();
   }, []);
 
-  const filteredLogs = logs.filter((log) => {
-    const matchesFilter = activeFilter === "All Logs" || log.category === activeFilter;
-    const matchesSearch = log.title.toLowerCase().includes(searchQuery.toLowerCase()) || log.desc.toLowerCase().includes(searchQuery.toLowerCase()) || log.user.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const filteredLogs = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return logs.filter((log) => {
+      const matchesFilter = activeFilter === "All Logs" || log.category === activeFilter;
+      const matchesSearch = !q || log.title.toLowerCase().includes(q) || log.desc.toLowerCase().includes(q) || log.user.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+  }, [logs, activeFilter, searchQuery]);
 
   const handleLoadMore = () => {
     showToast("Loaded historical activity logs", "info");
@@ -108,11 +116,6 @@ export default function ActivityPage() {
   if (loading) {
     return <div className="flex-1 flex items-center justify-center min-h-[60vh]"><div className="text-text-secondary animate-pulse font-medium">Loading activity logs...</div></div>;
   }
-
-  const ActivityIcon = ({ icon }: { icon: string }) => {
-    const Icon = iconComponentMap[icon] || Info;
-    return <Icon size={20} />;
-  };
 
   return (
     <div className="flex-1 overflow-y-auto bg-surface p-container animate-fade-in">

@@ -74,7 +74,7 @@ export default function AllocationPage() {
       });
 
       const newEntry: HistoryEntry = { date: "Just now", desc: `Transfer Requested to ${toEmployee}`, sub: `Reason: ${reason}`, active: true };
-      setHistory([newEntry, ...history.map((h) => ({ ...h, active: false }))]);
+      setHistory((prev) => [newEntry, ...prev.map((h) => ({ ...h, active: false }))]);
       showToast(`Transfer request submitted for AF-0114 to ${toEmployee}!`, "success");
       setToEmployee("");
       setReason("");

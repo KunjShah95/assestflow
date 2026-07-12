@@ -6,6 +6,9 @@ import { useApiError } from "@/hooks/useApiError";
 import { bookingService } from "@/services/booking.service";
 import { Calendar, Plus, Users, AlertTriangle, PlusCircle } from "lucide-react";
 
+const START_HOUR = 8;
+const END_HOUR = 20; // 8:00 PM
+
 interface BookingSlot {
   id: string;
   title: string;
@@ -39,7 +42,7 @@ export default function BookingPage() {
         const mappedSlots: BookingSlot[] = (bookings || []).map((b) => {
           const startHour = new Date(b.startTime).getHours();
           const endHour = new Date(b.endTime).getHours();
-          const top = (startHour - 9) * 60;
+          const top = (startHour - START_HOUR) * 60;
           const height = (endHour - startHour) * 60;
           return {
             id: `b-${b.id}`,
@@ -51,14 +54,14 @@ export default function BookingPage() {
           };
         });
         setSlots(mappedSlots.length > 0 ? mappedSlots : [
-          { id: "b1", title: "Booked – Procurement Team", time: "9:00 to 10:30", top: 0, height: 90, type: "booked" },
-          { id: "b2", title: "Requested 9:30 to 10:30 – conflict", time: "9:30 to 10:30", top: 30, height: 60, type: "conflict" },
+          { id: "b1", title: "Booked – Procurement Team", time: "9:00 to 10:30", top: (9 - START_HOUR) * 60, height: 90, type: "booked" },
+          { id: "b2", title: "Requested 9:30 to 10:30 – conflict", time: "9:30 to 10:30", top: (9.5 - START_HOUR) * 60, height: 60, type: "conflict" },
         ]);
       } catch (err) {
         handleError(err, "Could not load bookings");
         setSlots([
-          { id: "b1", title: "Booked – Procurement Team", time: "9:00 to 10:30", top: 0, height: 90, type: "booked" },
-          { id: "b2", title: "Requested 9:30 to 10:30 – conflict", time: "9:30 to 10:30", top: 30, height: 60, type: "conflict" },
+          { id: "b1", title: "Booked – Procurement Team", time: "9:00 to 10:30", top: (9 - START_HOUR) * 60, height: 90, type: "booked" },
+          { id: "b2", title: "Requested 9:30 to 10:30 – conflict", time: "9:30 to 10:30", top: (9.5 - START_HOUR) * 60, height: 60, type: "conflict" },
         ]);
       } finally {
         setLoading(false);
@@ -89,7 +92,7 @@ export default function BookingPage() {
 
       const startHour = parseInt(startStr.split(":")[0]);
       const endHour = parseInt(endStr.split(":")[0]);
-      const top = (startHour - 9) * 60;
+      const top = (startHour - START_HOUR) * 60;
       const height = (endHour - startHour) * 60;
 
       const newSlot: BookingSlot = {
@@ -100,7 +103,7 @@ export default function BookingPage() {
         height: Math.max(height, 30),
         type: "booked",
       };
-      setSlots([...slots, newSlot]);
+      setSlots((prev) => [...prev, newSlot]);
       showToast(`Confirmed slot booking: ${bookingForm.title} (${bookingForm.timeRange})`, "success");
       setIsBookModalOpen(false);
     } catch (err) {
@@ -129,6 +132,12 @@ export default function BookingPage() {
     );
   }
 
+  const totalRows = END_HOUR - START_HOUR;
+  const hoursList: string[] = [];
+  for (let h = START_HOUR; h <= END_HOUR; h++) {
+    hoursList.push(`${h}:00`);
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-container bg-surface-bright animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -153,23 +162,33 @@ export default function BookingPage() {
 
       <div className="bg-surface-container-lowest border border-border-subtle rounded-lg shadow-sm p-comfortable relative">
         <div className="timeline-grid">
-          <div className="flex flex-col text-right pr-4 border-r border-border-subtle text-mono-data text-text-secondary">
-            {["9:00", "10:00", "11:00", "12:00", "13:00", "14:00"].map((time, i) => (
-              <div key={time} className={`timeline-row flex items-start justify-end -mt-3 ${i === 5 ? "border-b-0" : ""}`}><span>{time}</span></div>
+          <div className="flex flex-col text-right pr-4 border-r border-border-subtle text-mono-data text-text-secondary select-none">
+            {hoursList.map((time, i) => (
+              <div key={time} className={`timeline-row flex items-start justify-end -mt-3 ${i === totalRows ? "border-b-0" : ""}`}>
+                <span>{time}</span>
+              </div>
             ))}
           </div>
-          <div className="relative w-full pb-8" style={{ minHeight: 300 }}>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className={`timeline-row ${i === 5 ? "border-b-0" : ""}`} />
+          <div className="relative w-full pb-8" style={{ minHeight: totalRows * 60 }}>
+            {Array.from({ length: totalRows }).map((_, i) => (
+              <div key={i} className={`timeline-row ${i === totalRows - 1 ? "border-b-0" : ""}`} />
             ))}
             {slots.map((slot) => {
+              const isCancelled = slot.title.toLowerCase().includes("cancelled");
               if (slot.type === "booked") {
                 return (
                   <div key={slot.id} onClick={() => showToast(`${slot.title} (${slot.time})`, "info")}
-                    className="absolute left-0 right-4 bg-primary-fixed border border-primary text-on-primary-fixed rounded p-3 shadow-sm z-10 cursor-pointer hover:opacity-95 transition-opacity"
+                    className={`absolute left-0 right-4 border rounded p-3 shadow-sm z-10 cursor-pointer hover:opacity-95 transition-opacity ${
+                      isCancelled 
+                        ? "bg-surface-container border-border-subtle text-text-secondary line-through opacity-60" 
+                        : "bg-primary-fixed border-primary text-on-primary-fixed"
+                    }`}
                     style={{ top: slot.top, height: slot.height }}>
                     <div className="flex justify-between items-start">
-                      <div><h4 className="text-label-md font-bold">{slot.title}</h4><p className="text-body-sm opacity-80">{slot.time}</p></div>
+                      <div>
+                        <h4 className="text-label-md font-bold">{slot.title}</h4>
+                        <p className="text-body-sm opacity-80">{slot.time}</p>
+                      </div>
                       <Users size={18} className="opacity-70" />
                     </div>
                   </div>
@@ -186,20 +205,33 @@ export default function BookingPage() {
                 </div>
               );
             })}
-            <div onClick={() => handleOpenBookingForTime("11:00 - 12:00")}
-              className="absolute left-0 right-4 rounded border border-transparent hover:border-primary border-dashed hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
-              style={{ top: 120, height: 60 }}>
-              <span className="opacity-0 group-hover:opacity-100 text-primary text-label-md flex items-center gap-1 transition-opacity font-medium">
-                <PlusCircle size={16} />Click to book 11:00 – 12:00
-              </span>
-            </div>
-            <div onClick={() => handleOpenBookingForTime("12:00 - 13:00")}
-              className="absolute left-0 right-4 rounded border border-transparent hover:border-primary border-dashed hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
-              style={{ top: 180, height: 60 }}>
-              <span className="opacity-0 group-hover:opacity-100 text-primary text-label-md flex items-center gap-1 transition-opacity font-medium">
-                <PlusCircle size={16} />Click to book 12:00 – 13:00
-              </span>
-            </div>
+            
+            {/* Click to book slots */}
+            {Array.from({ length: totalRows }).map((_, idx) => {
+              const hour = START_HOUR + idx;
+              const timeRange = `${hour}:00 - ${hour + 1}:00`;
+              const top = idx * 60;
+              
+              // Check if slot is occupied
+              const isOccupied = slots.some(slot => {
+                const [startStr, endStr] = slot.time.split(/ to | - /);
+                const startH = parseInt(startStr.split(":")[0]);
+                const endH = parseInt(endStr.split(":")[0]);
+                return hour >= startH && hour < endH;
+              });
+              
+              if (isOccupied) return null;
+
+              return (
+                <div key={`empty-${hour}`} onClick={() => handleOpenBookingForTime(timeRange)}
+                  className="absolute left-0 right-4 rounded border border-transparent hover:border-primary border-dashed hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
+                  style={{ top, height: 60 }}>
+                  <span className="opacity-0 group-hover:opacity-100 text-primary text-label-md flex items-center gap-1 transition-opacity font-medium">
+                    <PlusCircle size={16} />Click to book {timeRange}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -240,9 +272,17 @@ export default function BookingPage() {
           <div>
             <label className="block text-label-md mb-1" htmlFor="book-time">Time Range</label>
             <select id="book-time" value={bookingForm.timeRange} onChange={(e) => setBookingForm({ ...bookingForm, timeRange: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md">
-              <option value="11:00 - 12:00">11:00 AM - 12:00 PM</option>
-              <option value="12:00 - 13:00">12:00 PM - 1:00 PM</option>
-              <option value="13:00 - 14:00">1:00 PM - 2:00 PM</option>
+              {Array.from({ length: totalRows }).map((_, idx) => {
+                const hour = START_HOUR + idx;
+                const timeRange = `${hour}:00 - ${hour + 1}:00`;
+                const displayStart = hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? "12:00 PM" : `${hour}:00 AM`;
+                const displayEnd = (hour + 1) > 12 ? `${hour + 1 - 12}:00 PM` : (hour + 1) === 12 ? "12:00 PM" : `${hour + 1}:00 AM`;
+                return (
+                  <option key={timeRange} value={timeRange}>
+                    {displayStart} - {displayEnd}
+                  </option>
+                );
+              })}
             </select>
           </div>
           <div>

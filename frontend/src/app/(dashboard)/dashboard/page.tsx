@@ -18,6 +18,11 @@ const iconMap: Record<string, typeof Monitor> = {
   inventory_2: Package,
 };
 
+const DynamicIcon = ({ name, size = 16 }: { name: string; size?: number }) => {
+  const Icon = iconMap[name] || Info;
+  return <Icon size={size} />;
+};
+
 interface ActivityItem {
   icon: string;
   iconBg: string;
@@ -106,7 +111,7 @@ export default function DashboardPage() {
       showToast("Please enter an asset name", "error");
       return;
     }
-    setRecentActivities([
+    setRecentActivities((prev) => [
       {
         icon: "inventory_2",
         iconBg: "bg-primary/10 text-primary",
@@ -114,7 +119,7 @@ export default function DashboardPage() {
         desc: `Registered to ${newAsset.location} [${newAsset.category}]`,
         time: "Just now",
       },
-      ...recentActivities,
+      ...prev,
     ]);
     showToast(`Successfully registered ${newAsset.name} (${newAsset.tag})!`, "success");
     setIsRegisterOpen(false);
@@ -133,11 +138,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const DynamicIcon = ({ name, size = 16 }: { name: string; size?: number }) => {
-    const Icon = iconMap[name] || Info;
-    return <Icon size={size} />;
-  };
 
   return (
     <div>

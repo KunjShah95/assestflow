@@ -1,10 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Modal from "@/components/Modal";
 import { useApiError } from "@/hooks/useApiError";
 import { departmentService } from "@/services/department.service";
 import { Search, Download, Plus, FolderTree, Edit2, Shield, MapPin, Users, Settings } from "lucide-react";
+
+const TABS = [
+  { name: "Departments", icon: FolderTree },
+  { name: "Categories", icon: Settings },
+  { name: "Employees", icon: Users },
+  { name: "Locations", icon: MapPin },
+  { name: "Policies", icon: Shield },
+];
 
 interface Department {
   id: number;
@@ -55,10 +63,12 @@ export default function OrganizationSetupPage() {
     fetchData();
   }, []);
 
-  const filteredDepartments = departments.filter((d) =>
-    d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.head.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDepartments = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return q
+      ? departments.filter((d) => d.name.toLowerCase().includes(q) || d.head.toLowerCase().includes(q))
+      : departments;
+  }, [departments, searchQuery]);
 
   const handleAddDepartment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,14 +105,6 @@ export default function OrganizationSetupPage() {
     );
   }
 
-  const tabs = [
-    { name: "Departments", icon: FolderTree },
-    { name: "Categories", icon: Settings },
-    { name: "Employees", icon: Users },
-    { name: "Locations", icon: MapPin },
-    { name: "Policies", icon: Shield },
-  ];
-
   return (
     <div className="flex-1 overflow-y-auto p-8 animate-fade-in max-w-[1320px] mx-auto pb-24">
       
@@ -116,7 +118,27 @@ export default function OrganizationSetupPage() {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => showToast("Exporting Organization Hierarchy data...", "info")}
+            onClick={() => {
+              try {
+                const header = "Department,Head,Parent,Status";
+                const rows = departments.map((d) =>
+                  [d.name, d.head, d.parent, d.status]
+                    .map((v) => `"${v.replace(/"/g, '""')}"`)
+                    .join(",")
+                );
+                const csv = "\uFEFF" + [header, ...rows].join("\r\n");
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const el = document.createElement("a");
+                el.href = URL.createObjectURL(blob);
+                el.download = `organization-hierarchy-${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(el);
+                el.click();
+                document.body.removeChild(el);
+                showToast(`Exported ${departments.length} departments`, "success");
+              } catch {
+                showToast("Export failed", "error");
+              }
+            }}
             className="bg-white border border-[#E2E8F0] text-[#0F172A] px-4 py-2.5 rounded-[8px] text-[13px] font-bold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2 shadow-sm"
           >
             <Download size={16} /> Export
@@ -132,7 +154,7 @@ export default function OrganizationSetupPage() {
 
       {/* Tabs */}
       <div className="border-b border-[#E2E8F0] flex gap-2 overflow-x-auto mb-8">
-        {tabs.map((tab) => {
+        {TABS.map((tab) => {
           const IconComp = tab.icon;
           return (
             <button 

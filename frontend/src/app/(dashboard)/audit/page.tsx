@@ -70,7 +70,27 @@ export default function AuditPage() {
     showToast(`Marked ${id} as Verified`, "success");
   };
 
-  const handleExportAudit = () => showToast("Exporting Q3 Audit Report (CSV)...", "info");
+  const handleExportAudit = () => {
+    try {
+      const header = "Asset ID,Asset Name,Expected Location,Status";
+      const rows = auditItems.map((a) =>
+        [a.id, a.name, a.location, a.status]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",")
+      );
+      const csv = "\uFEFF" + [header, ...rows].join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const el = document.createElement("a");
+      el.href = URL.createObjectURL(blob);
+      el.download = `audit-report-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(el);
+      el.click();
+      document.body.removeChild(el);
+      showToast(`Exported ${auditItems.length} audit items as CSV`, "success");
+    } catch {
+      showToast("Export failed", "error");
+    }
+  };
   const handleSaveProgress = () => showToast("Q3 Audit progress saved successfully!", "success");
 
   const handleConfirmCloseCycle = () => {
