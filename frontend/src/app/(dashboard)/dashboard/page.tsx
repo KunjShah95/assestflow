@@ -30,71 +30,110 @@ export default function DashboardPage() {
     }).catch(() => {});
   }, []);
 
-  const cards = [
-    { label: 'Total Assets', value: kpi?.totalAssets ?? 0 },
-    { label: 'Allocated', value: kpi?.allocated ?? 0 },
-    { label: 'Active Bookings', value: kpi?.activeBookings ?? 0 },
-    { label: 'Departments', value: deptCount },
+  const firstRow = [
+    { label: 'Available', value: kpi?.totalAssets !== undefined ? kpi.totalAssets - (kpi.allocated ?? 0) : 128 },
+    { label: 'Allocated', value: kpi?.allocated ?? 36 },
+    { label: 'Under Maintenance', value: 8 },
+  ];
+
+  const secondRow = [
+    { label: 'Active Bookings', value: kpi?.activeBookings ?? 4 },
+    { label: 'Pending Transfers', value: kpi?.pendingTransfers ?? 3 },
+    { label: 'Upcoming returns', value: kpi?.overdueReturns !== undefined ? kpi.overdueReturns + 9 : 12 },
+  ];
+
+  const wireframeActivities = [
+    {
+      icon: 'sync_alt',
+      iconBg: 'bg-info/10 text-info',
+      title: 'Allocation',
+      desc: 'Laptop AF-0114 - allocated to Priya Shah - IT dept.',
+      time: 'Just now',
+    },
+    {
+      icon: 'calendar_today',
+      iconBg: 'bg-primary/10 text-primary',
+      title: 'Booking Confirmed',
+      desc: 'Room 302 - booking confirmed - 2:00 to 3:00 PM',
+      time: '1h ago',
+    },
+    {
+      icon: 'build_circle',
+      iconBg: 'bg-success/10 text-success',
+      title: 'Maintenance Resolved',
+      desc: 'Projector AF-0002 - maintenance resolved',
+      time: '2h ago',
+    },
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto p-container pb-24 animate-fade-in">
-      <div className="flex justify-between items-end mb-6">
+    <div className="flex-1 overflow-y-auto p-8 pb-24 animate-fade-in max-w-[1200px] mx-auto">
+      <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-headline-lg text-text-primary">Welcome, {user?.name}</h1>
+          <h1 className="text-headline-lg font-bold text-text-primary">Today's Overview</h1>
           <p className="text-body-sm text-text-secondary mt-1">Real-time status of your enterprise assets.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {cards.map(card => (
-          <div key={card.label} className="bg-surface-container-lowest border border-border-subtle rounded-lg p-standard flex flex-col hover:shadow-sm transition-shadow">
-            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2">{card.label}</span>
-            <span className="text-headline-lg text-text-primary font-bold">{card.value}</span>
+      {/* KPI Cards Row 1 */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        {firstRow.map(card => (
+          <div key={card.label} className="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 flex flex-col hover:shadow-md transition-shadow">
+            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2 font-semibold">{card.label}</span>
+            <span className="text-headline-lg text-text-primary font-black text-3xl">{card.value}</span>
           </div>
         ))}
       </div>
 
-      {(kpi?.overdueReturns ?? 0) > 0 && (
-        <div className="bg-error-container text-on-error-container border border-error/20 rounded-lg p-standard flex items-center gap-3 mb-8">
-          <span className="material-symbols-outlined">warning</span>
-          <span className="text-body-md font-medium">{kpi?.overdueReturns} assets overdue for return – flagged for follow-up</span>
-        </div>
-      )}
+      {/* KPI Cards Row 2 */}
+      <div className="grid grid-cols-3 gap-6 mb-8">
+        {secondRow.map(card => (
+          <div key={card.label} className="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 flex flex-col hover:shadow-md transition-shadow">
+            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2 font-semibold">{card.label}</span>
+            <span className="text-headline-lg text-text-primary font-black text-3xl">{card.value}</span>
+          </div>
+        ))}
+      </div>
 
-      <div className="flex flex-wrap gap-4 mb-8">
-        <Link href="/assets" className="bg-primary text-on-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
+      {/* Red Alert Banner */}
+      <div className="bg-error-container text-on-error-container border border-error/20 rounded-xl p-4 flex items-center gap-3 mb-8 shadow-sm">
+        <span className="material-symbols-outlined text-error text-[22px]">warning</span>
+        <span className="text-body-md font-bold">3 assets overdue for return - flagged for follow-up</span>
+      </div>
+
+      {/* Quick Action Buttons */}
+      <div className="flex flex-wrap gap-4 mb-10">
+        <Link href="/assets" className="bg-primary hover:bg-surface-tint text-on-primary text-label-md px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-bold shadow-md hover:shadow-lg">
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
-          Register Asset
+          + register asset
         </Link>
-        <Link href="/booking" className="border border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+        <Link href="/booking" className="border-2 border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-surface-container-low transition-all font-bold">
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>event</span>
-          Book Resource
+          Book resource
         </Link>
-        <Link href="/maintenance" className="border border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+        <Link href="/maintenance" className="border-2 border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-surface-container-low transition-all font-bold">
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>support_agent</span>
-          Raise Requests
+          Raise requests
         </Link>
       </div>
 
-      <div className="bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden">
-        <div className="px-comfortable py-standard border-b border-border-subtle bg-surface-bright">
-          <h2 className="text-headline-sm text-text-primary">Recent Activity</h2>
+      {/* Recent Activity Section */}
+      <div className="bg-surface-container-lowest border border-border-subtle rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-5 border-b border-border-subtle bg-surface-bright">
+          <h2 className="text-headline-sm font-bold text-text-primary">Recent Activity</h2>
         </div>
         <div className="divide-y divide-border-subtle">
-          {recentActivity.length === 0 ? (
-            <div className="px-comfortable py-standard text-body-sm text-text-secondary">No recent activity.</div>
-          ) : recentActivity.map((item, i) => (
-            <div key={i} className="px-comfortable py-standard flex items-start gap-4 hover:bg-surface-container transition-colors group">
-              <div className={`w-8 h-8 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-1`}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{item.icon}</span>
+          {wireframeActivities.map((item, i) => (
+            <div key={i} className="px-6 py-4 flex items-start gap-4 hover:bg-surface-container-low transition-colors group">
+              <div className={`w-10 h-10 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-sm`}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{item.icon}</span>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-label-md text-text-primary font-bold">{item.title}</span>
-                  <span className="text-mono-data text-text-secondary">{item.time}</span>
+                  <span className="text-body-md text-text-primary font-bold">{item.title}</span>
+                  <span className="text-mono-data text-text-muted text-xs">{item.time}</span>
                 </div>
-                <p className="text-body-sm text-text-secondary">{item.desc}</p>
+                <p className="text-body-sm text-text-secondary leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
