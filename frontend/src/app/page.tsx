@@ -123,7 +123,7 @@ export default function LandingPage() {
               Start Your Implementation
             </Link>
             <a
-              href="https://www.youtube.com/watch?v=G0X9JhGpjmw"
+              href="https://youtu.be/8ei2u5h1dV8"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto bg-white border border-[#E2E8F0] text-[#0F172A] px-8 py-4 rounded-full text-[16px] leading-[24px] font-medium hover:border-[#0F172A] transition-all flex items-center justify-center gap-2"

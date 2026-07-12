@@ -14,6 +14,10 @@
   <img src="https://img.shields.io/badge/license-MIT-yellow" alt="License">
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/8ei2u5h1dV8"><strong>Watch System Overview</strong></a>
+</p>
+
 ---
 
 ## Table of Contents
