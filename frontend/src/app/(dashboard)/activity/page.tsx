@@ -78,7 +78,7 @@ export default function ActivityPage() {
             icon: matched.icon,
             iconColor: matched.iconColor,
             title: `${log.action || "Activity"} - ${log.entityType || ""} #${log.entityId || log.id}`,
-            desc: log.details ?? "",
+            desc: log.details ? (typeof log.details === "string" ? log.details : JSON.stringify(log.details)) : "",
             time: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Recently",
             user: `User #${log.employeeId}`,
           };
