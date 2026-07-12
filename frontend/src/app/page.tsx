@@ -54,42 +54,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-surface text-text-primary font-body-md overflow-x-hidden min-h-screen">
-      {/* Top Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-container-max mx-auto px-margin-desktop flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <Link className="text-headline-card font-headline-card font-bold text-text-primary" href="/">
-              AssetFlow
-            </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <Link className="text-primary font-semibold font-body-md hover:text-primary transition-colors duration-200" href="#">
-                Product
-              </Link>
-              <Link className="text-text-secondary font-body-md hover:text-primary transition-colors duration-200" href="#">
-                Solutions
-              </Link>
-              <Link className="text-text-secondary font-body-md hover:text-primary transition-colors duration-200" href="#">
-                Developers
-              </Link>
-              <Link className="text-text-secondary font-body-md hover:text-primary transition-colors duration-200" href="#">
-                Pricing
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:block text-text-secondary font-button text-button px-4 py-2 hover:text-primary transition-colors">
-              Log In
-            </Link>
-            <button className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all shadow-sm">
-              Book Demo
-            </button>
-          </div>
-        </div>
-      </nav>
-
+    <div className="text-text-primary font-body-md overflow-x-hidden min-h-screen">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-section-padding grid-pattern overflow-hidden">
+      <section className="relative pt-32 pb-section-padding overflow-hidden">
         <div className="absolute inset-0 radial-glow pointer-events-none"></div>
         <div className="max-w-container-max mx-auto px-margin-desktop text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary font-label-sm text-label-sm mb-8 animate-reveal active">
@@ -525,22 +492,22 @@ export default function Home() {
               <h5 className="font-bold text-text-primary mb-6">Product</h5>
               <ul className="space-y-4">
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/product/command-center">
                     Command Center
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/product/core-intelligence">
                     Core Intelligence
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/developers/api">
                     API Reference
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/product/integrations">
                     Integrations
                   </Link>
                 </li>
@@ -550,22 +517,22 @@ export default function Home() {
               <h5 className="font-bold text-text-primary mb-6">Company</h5>
               <ul className="space-y-4">
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/about">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/about#mission">
                     Our Mission
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/about">
                     Careers
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/contact">
                     Contact
                   </Link>
                 </li>
@@ -575,22 +542,22 @@ export default function Home() {
               <h5 className="font-bold text-text-primary mb-6">Resources</h5>
               <ul className="space-y-4">
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/resources/case-studies">
                     Case Studies
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/docs">
                     Documentation
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/resources/blog">
                     Blog
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/resources/security">
                     Security
                   </Link>
                 </li>
@@ -600,17 +567,17 @@ export default function Home() {
               <h5 className="font-bold text-text-primary mb-6">Legal</h5>
               <ul className="space-y-4">
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/legal/privacy">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/legal/terms">
                     Terms of Service
                   </Link>
                 </li>
                 <li>
-                  <Link className="text-text-muted hover:text-primary transition-all" href="#">
+                  <Link className="text-text-muted hover:text-primary transition-all" href="/legal/cookies">
                     Cookie Policy
                   </Link>
                 </li>

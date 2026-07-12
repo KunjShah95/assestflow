@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -12,6 +12,7 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/');
@@ -19,8 +20,8 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-surface">
-        <div className="text-text-secondary animate-pulse">Loading...</div>
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="text-[#475569] animate-pulse">Loading...</div>
       </div>
     );
   }
@@ -28,10 +29,19 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface">
-      <Sidebar />
-      <main className="flex-1 ml-0 md:ml-sidebar-width flex flex-col h-full bg-surface overflow-hidden">
-        {children}
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      <main
+        className={`transition-all duration-300 ease-in-out min-h-screen ${
+          sidebarCollapsed ? 'ml-[64px]' : 'ml-[240px]'
+        }`}
+      >
+        <div className="px-8 py-8 max-w-[1320px]">
+          {children}
+        </div>
       </main>
     </div>
   );
