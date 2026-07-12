@@ -21,22 +21,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const u = await authService.me();
-      setUser(u);
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) checkAuth();
-    else setLoading(false);
-  }, [checkAuth]);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      const id = setTimeout(() => setLoading(false));
+      return () => clearTimeout(id);
+    }
+    authService.me()
+      .then((u) => setUser(u))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.login(email, password);

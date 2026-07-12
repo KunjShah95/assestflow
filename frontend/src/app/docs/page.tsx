@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FileText } from "lucide-react";
 
 export default function DocsPage() {
   const sections = [
@@ -51,7 +52,7 @@ export default function DocsPage() {
                 {sec.items.map((item) => (
                   <li key={item.label}>
                     <Link href={item.href} className="text-text-secondary hover:text-primary transition-colors flex items-center gap-2 group">
-                      <span className="material-symbols-outlined text-text-muted group-hover:text-primary text-[18px]">description</span>
+                      <FileText size={18} className="text-text-muted group-hover:text-primary" />
                       <span className="text-sm font-medium">{item.label}</span>
                     </Link>
                   </li>

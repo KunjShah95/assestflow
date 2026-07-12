@@ -2,21 +2,56 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
 import { allocationService } from "@/services/allocation.service";
+import { Search, Bell, Laptop, AlertCircle, ChevronDown, Send } from "lucide-react";
+
+interface HistoryEntry {
+  date: string;
+  desc: string;
+  sub: string;
+  active: boolean;
+}
 
 export default function AllocationPage() {
   const { showToast } = useToast();
 
+  const [loading, setLoading] = useState(true);
   const [toEmployee, setToEmployee] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [history, setHistory] = useState([
-    { date: "Mar 12, 2023", desc: "Allocated to Priya Shah", sub: "Dept: Engineering", active: true },
-    { date: "Jan 04, 2023", desc: "Returned by Arjun Nair", sub: "Condition reported: Good", active: false },
-    { date: "Nov 15, 2022", desc: "Asset Registered", sub: "Procurement Batch #8892", active: false },
-  ]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  useEffect(() => {
+    async function fetchAllocations() {
+      try {
+        const records = await allocationService.list();
+        const mapped: HistoryEntry[] = (records || []).map((r) => ({
+          date: r.allocatedAt ? new Date(r.allocatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently",
+          desc: r.returnedAt
+            ? `Returned by ${r.employeeName || `Emp #${r.employeeId}`}`
+            : `Allocated to ${r.employeeName || `Emp #${r.employeeId}`}`,
+          sub: r.returnedAt
+            ? `Condition: ${r.conditionCheckinNotes || "Not reported"}`
+            : `Dept: ${r.departmentName || "N/A"}`,
+          active: r.status === "active",
+        }));
+        setHistory(mapped.length > 0 ? mapped : [
+          { date: "Mar 12, 2023", desc: "Allocated to Priya Shah", sub: "Dept: Engineering", active: true },
+          { date: "Jan 04, 2023", desc: "Returned by Arjun Nair", sub: "Condition reported: Good", active: false },
+        ]);
+      } catch {
+        setHistory([
+          { date: "Mar 12, 2023", desc: "Allocated to Priya Shah", sub: "Dept: Engineering", active: true },
+          { date: "Jan 04, 2023", desc: "Returned by Arjun Nair", sub: "Condition reported: Good", active: false },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAllocations();
+  }, []);
 
   const handleSubmitTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +72,7 @@ export default function AllocationPage() {
         reason: reason.trim(),
       });
 
-      const newEntry = { date: "Just now", desc: `Transfer Requested to ${toEmployee}`, sub: `Reason: ${reason}`, active: true };
+      const newEntry: HistoryEntry = { date: "Just now", desc: `Transfer Requested to ${toEmployee}`, sub: `Reason: ${reason}`, active: true };
       setHistory([newEntry, ...history.map((h) => ({ ...h, active: false }))]);
       showToast(`Transfer request submitted for AF-0114 to ${toEmployee}!`, "success");
       setToEmployee("");
@@ -49,10 +84,17 @@ export default function AllocationPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="text-text-secondary animate-pulse font-medium">Loading allocation data...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto bg-surface animate-fade-in">
       <div className="max-w-6xl mx-auto p-container md:p-8 space-y-comfortable">
-        {/* Page Header */}
         <div className="flex justify-between items-end pb-4 border-b border-border-subtle">
           <div>
             <h1 className="text-headline-lg text-text-primary">Allocation &amp; Transfer</h1>
@@ -60,30 +102,28 @@ export default function AllocationPage() {
           </div>
           <div className="hidden md:flex items-center gap-4">
             <button onClick={() => showToast("Search active asset allocations", "info")} className="text-text-secondary hover:text-primary transition-colors p-1">
-              <span className="material-symbols-outlined">search</span>
+              <Search size={20} />
             </button>
             <button onClick={() => showToast("No new allocation alerts", "info")} className="text-text-secondary hover:text-primary transition-colors p-1">
-              <span className="material-symbols-outlined">notifications</span>
+              <Bell size={20} />
             </button>
           </div>
         </div>
 
-        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-container">
-          {/* Transfer Request Form */}
           <div className="lg:col-span-2 bg-surface-container-lowest rounded-lg border border-border-subtle p-6 shadow-sm flex flex-col gap-6">
             <h2 className="text-headline-md text-text-primary">Transfer Request</h2>
             <form onSubmit={handleSubmitTransfer} className="space-y-5">
               <div className="space-y-1.5">
                 <label className="text-label-md text-text-primary block" htmlFor="asset-input">Asset</label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">laptop_mac</span>
+                  <Laptop size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                   <input className="w-full pl-10 pr-3 py-2 bg-surface border border-border-subtle rounded text-body-md text-text-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" id="asset-input" readOnly type="text" defaultValue="AF-0114 - Dell Laptop" />
                 </div>
               </div>
 
               <div className="bg-error-container/30 border border-error/50 rounded p-3 flex gap-3 items-start">
-                <span className="material-symbols-outlined text-error mt-0.5">error</span>
+                <AlertCircle size={20} className="text-error mt-0.5 shrink-0" />
                 <div>
                   <p className="text-label-md text-error font-semibold">Already Allocated to Priya Shah (Engineering)</p>
                   <p className="text-body-sm text-error mt-0.5">Direct re-allocation is blocked – submit a transfer request below.</p>
@@ -105,7 +145,7 @@ export default function AllocationPage() {
                       <option value="Marcus Johnson">Marcus Johnson (Field Ops)</option>
                       <option value="Aditi Rao">Aditi Rao (Engineering)</option>
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">expand_more</span>
+                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
                   </div>
                 </div>
               </div>
@@ -118,19 +158,18 @@ export default function AllocationPage() {
               <div className="pt-4 flex justify-end">
                 <button type="submit" disabled={submitting}
                   className="bg-primary hover:bg-primary/90 text-on-primary text-label-md py-2.5 px-6 rounded transition-colors shadow-sm flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                  <span className="material-symbols-outlined text-sm">send</span>
+                  <Send size={16} />
                   {submitting ? "Submitting..." : "Submit Request"}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* Contextual Sidebar */}
           <div className="lg:col-span-1 flex flex-col gap-container">
             <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-5 shadow-sm">
               <h3 className="text-label-md uppercase tracking-wider text-text-secondary mb-4 border-b border-border-subtle pb-2">Asset Details</h3>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center text-primary"><span className="material-symbols-outlined">laptop_mac</span></div>
+                <div className="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center text-primary"><Laptop size={24} /></div>
                 <div><p className="text-headline-sm text-text-primary">AF-0114</p><p className="text-body-sm text-text-secondary">Dell Latitude 7420</p></div>
               </div>
               <div className="space-y-2 mt-4">
@@ -146,14 +185,18 @@ export default function AllocationPage() {
             <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-5 shadow-sm flex-1">
               <h3 className="text-label-md uppercase tracking-wider text-text-secondary mb-5 border-b border-border-subtle pb-2">Allocation History</h3>
               <div className="relative border-l border-border-subtle ml-3 space-y-6">
-                {history.map((item, i) => (
-                  <div key={i} className="relative pl-6">
-                    <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${item.active ? "bg-primary ring-4 ring-surface-container-lowest" : "bg-border-subtle"}`} />
-                    <p className="text-mono-data text-text-secondary mb-1">{item.date}</p>
-                    <p className="text-body-sm text-text-primary">{item.desc}</p>
-                    <p className="text-body-sm text-text-secondary text-xs mt-0.5">{item.sub}</p>
-                  </div>
-                ))}
+                {history.length === 0 ? (
+                  <p className="pl-6 text-body-sm text-text-secondary italic">No allocation history available.</p>
+                ) : (
+                  history.map((item, i) => (
+                    <div key={i} className="relative pl-6">
+                      <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${item.active ? "bg-primary ring-4 ring-surface-container-lowest" : "bg-border-subtle"}`} />
+                      <p className="text-mono-data text-text-secondary mb-1">{item.date}</p>
+                      <p className="text-body-sm text-text-primary">{item.desc}</p>
+                      <p className="text-body-sm text-text-secondary text-xs mt-0.5">{item.sub}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

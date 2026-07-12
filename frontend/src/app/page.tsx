@@ -3,13 +3,11 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { showToast } = useToast();
   const { login, signup } = useAuth();
 

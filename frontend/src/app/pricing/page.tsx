@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { CheckCircle } from "lucide-react";
 
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
@@ -37,7 +38,7 @@ export default function PricingPage() {
     {
       name: "Enterprise",
       desc: "For multi-site corporations with zero-trust needs.",
-      monthlyPrice: null, // custom
+      monthlyPrice: null,
       annualPrice: null,
       features: [
         "Unlimited assets & sites",
@@ -59,7 +60,6 @@ export default function PricingPage() {
             Scale your resource visibility as your enterprise grows. Choose the tier that matches your operational capacity.
           </p>
 
-          {/* Toggle */}
           <div className="inline-flex items-center gap-4 bg-surface-container border border-border p-1.5 rounded-full">
             <button
               onClick={() => setBillingCycle("monthly")}
@@ -118,7 +118,7 @@ export default function PricingPage() {
                   <ul className="space-y-4 mb-8">
                     {plan.features.map((feat) => (
                       <li key={feat} className="flex items-start gap-2">
-                        <span className="material-symbols-outlined text-success text-[18px] shrink-0 mt-0.5">check_circle</span>
+                        <CheckCircle size={18} className="text-success shrink-0 mt-0.5" />
                         <span className="text-sm text-text-secondary">{feat}</span>
                       </li>
                     ))}

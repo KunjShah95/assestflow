@@ -3,6 +3,7 @@
 import { use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, ShieldCheck, Factory, Receipt, CheckCircle } from "lucide-react";
 
 const pagesContent: Record<string, { title: string; subtitle: string; desc: string; icon: string; stats: string; statsLabel: string; bullets: string[] }> = {
   "command-center": {
@@ -49,6 +50,12 @@ const pagesContent: Record<string, { title: string; subtitle: string; desc: stri
   }
 };
 
+const iconMap: Record<string, typeof ShieldCheck> = {
+  verified_user: ShieldCheck,
+  precision_manufacturing: Factory,
+  receipt_long: Receipt,
+};
+
 export default function ProductSubpage({ params }: { params: Promise<{ subpage: string }> }) {
   const { subpage } = use(params);
   const content = pagesContent[subpage];
@@ -57,12 +64,14 @@ export default function ProductSubpage({ params }: { params: Promise<{ subpage: 
     notFound();
   }
 
+  const Icon = iconMap[content.icon] || ShieldCheck;
+
   return (
     <div className="min-h-screen pt-24 pb-section-padding text-left">
       <div className="max-w-container-max mx-auto px-margin-desktop relative z-10">
         <div className="mb-8">
           <Link href="/product" className="text-primary font-bold inline-flex items-center gap-1 hover:underline">
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Back to Products
           </Link>
         </div>
@@ -70,9 +79,7 @@ export default function ProductSubpage({ params }: { params: Promise<{ subpage: 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
-              <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>
-                {content.icon}
-              </span>
+              <Icon size={32} />
             </div>
             <h1 className="font-display-hero text-headline-section font-bold mb-4 text-text-primary leading-tight">
               {content.title}
@@ -83,7 +90,7 @@ export default function ProductSubpage({ params }: { params: Promise<{ subpage: 
             <ul className="space-y-4 mb-8">
               {content.bullets.map((b) => (
                 <li key={b} className="flex items-start gap-2">
-                  <span className="material-symbols-outlined text-success text-[18px] mt-0.5">check_circle</span>
+                  <CheckCircle size={18} className="text-success mt-0.5 shrink-0" />
                   <span className="text-text-secondary text-sm">{b}</span>
                 </li>
               ))}

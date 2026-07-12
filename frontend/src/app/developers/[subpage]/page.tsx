@@ -3,6 +3,7 @@
 import { use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, Code, RefreshCw } from "lucide-react";
 
 const pagesContent: Record<string, { title: string; subtitle: string; desc: string; icon: string; sections: { label: string; code: string; desc: string }[] }> = {
   api: {
@@ -74,6 +75,11 @@ Content-Type: application/json
   }
 };
 
+const iconMap: Record<string, typeof Code> = {
+  api: Code,
+  sync_alt: RefreshCw,
+};
+
 export default function DevelopersSubpage({ params }: { params: Promise<{ subpage: string }> }) {
   const { subpage } = use(params);
   const content = pagesContent[subpage];
@@ -82,19 +88,21 @@ export default function DevelopersSubpage({ params }: { params: Promise<{ subpag
     notFound();
   }
 
+  const Icon = iconMap[content.icon] || Code;
+
   return (
     <div className="min-h-screen pt-24 pb-section-padding text-left">
       <div className="max-w-container-max mx-auto px-margin-desktop relative z-10">
         <div className="mb-8">
           <Link href="/developers" className="text-primary font-bold inline-flex items-center gap-1 hover:underline">
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Back to Developer Hub
           </Link>
         </div>
 
         <div className="mb-12">
           <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 text-primary">
-            <span className="material-symbols-outlined">{content.icon}</span>
+            <Icon size={24} />
           </div>
           <h1 className="text-headline-section font-bold text-text-primary mb-2">{content.title}</h1>
           <p className="text-primary font-semibold text-md mb-4">{content.subtitle}</p>

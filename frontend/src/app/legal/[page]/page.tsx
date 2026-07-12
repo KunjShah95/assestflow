@@ -1,7 +1,6 @@
 "use client";
 
 import { use } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 const pagesContent: Record<string, { title: string; date: string; sections: { heading: string; body: string }[] }> = {

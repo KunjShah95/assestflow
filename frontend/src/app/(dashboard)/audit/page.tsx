@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { auditService } from "@/services/audit.service";
+import type { AuditResult } from "@/types/audit";
+import { Download, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
 
 interface AuditItem {
   id: string;
@@ -15,10 +17,16 @@ interface AuditItem {
   rowBg: string;
 }
 
+const statusIconMap: Record<string, typeof CheckCircle> = {
+  check_circle: CheckCircle,
+  error: AlertCircle,
+  warning: AlertTriangle,
+};
+
 export default function AuditPage() {
   const { showToast } = useToast();
 
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [auditItems, setAuditItems] = useState<AuditItem[]>([
     { id: "AF-003", name: "Dell laptop", location: "Desk E12", status: "Verified", statusIcon: "check_circle", statusColor: "text-success bg-success/10", rowBg: "" },
@@ -36,7 +44,7 @@ export default function AuditPage() {
           try {
             const results = await auditService.getResults(latestCycle.id);
             if (results && results.length > 0) {
-              setAuditItems(results.map((r: any) => ({
+              setAuditItems(results.map((r: AuditResult) => ({
                 id: `AF-${String(r.assetId).padStart(4, "0")}`,
                 name: `Asset #${r.assetId}`,
                 location: "On-site",
@@ -68,6 +76,11 @@ export default function AuditPage() {
     setIsCloseModalOpen(false);
   };
 
+  const StatusIcon = ({ icon }: { icon: string }) => {
+    const Icon = statusIconMap[icon] || Info;
+    return <Icon size={14} />;
+  };
+
   if (loading) {
     return <div className="flex-1 flex items-center justify-center min-h-[60vh]"><div className="text-text-secondary animate-pulse font-medium">Loading audit data...</div></div>;
   }
@@ -81,7 +94,7 @@ export default function AuditPage() {
         </div>
         <div className="flex gap-3">
           <button onClick={handleExportAudit} className="px-4 py-2 border border-border-subtle text-text-primary rounded bg-surface-container-lowest hover:bg-surface-container-low transition-colors text-label-md flex items-center gap-2 shadow-sm font-medium">
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>Export
+            <Download size={18} />Export
           </button>
         </div>
       </div>
@@ -97,8 +110,8 @@ export default function AuditPage() {
                 <tr key={item.id} className={`hover:bg-surface-container transition-colors ${item.rowBg}`}>
                   <td className="px-6 py-3 text-mono-data text-text-primary"><div className="font-medium">{item.id}</div><div className="text-text-secondary">{item.name}</div></td>
                   <td className="px-6 py-3 text-text-secondary">{item.location}</td>
-                  <td className="px-6 py-3"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md ${item.statusColor}`}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>{item.statusIcon}</span>{item.status}</span></td>
-                  <td className="px-6 py-3"><button onClick={() => handleToggleVerify(item.id)} className="text-text-secondary hover:text-primary transition-colors p-1.5 rounded hover:bg-surface-container-low" title="Verify Asset"><span className="material-symbols-outlined" style={{ fontSize: 20 }}>check_circle</span></button></td>
+                  <td className="px-6 py-3"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md ${item.statusColor}`}><StatusIcon icon={item.statusIcon} />{item.status}</span></td>
+                  <td className="px-6 py-3"><button onClick={() => handleToggleVerify(item.id)} className="text-text-secondary hover:text-primary transition-colors p-1.5 rounded hover:bg-surface-container-low" title="Verify Asset"><CheckCircle size={20} /></button></td>
                 </tr>
               ))}
             </tbody>
@@ -108,7 +121,7 @@ export default function AuditPage() {
 
       <div className="flex flex-col gap-4">
         <div className="bg-warning/10 border border-warning/20 p-4 rounded-lg flex items-start gap-3">
-          <span className="material-symbols-outlined text-warning">info</span>
+          <Info size={20} className="text-warning shrink-0 mt-0.5" />
           <div><h3 className="text-headline-sm text-warning">{auditItems.filter((i) => i.status !== "Verified").length} assets flagged</h3>
             <p className="text-body-sm text-warning/80 mt-1">Discrepancy report generated automatically. Review required before closing cycle.</p></div>
         </div>

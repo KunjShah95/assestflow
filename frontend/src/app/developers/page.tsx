@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Code, ArrowRight, RefreshCw } from "lucide-react";
 
 export default function DevelopersPage() {
   const [selectedLang, setSelectedLang] = useState<"curl" | "node" | "python">("curl");
@@ -78,7 +79,7 @@ print(assets)`
           <div className="space-y-6">
             <div className="bg-white p-8 rounded-[20px] border border-border shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 bg-surface rounded-lg flex items-center justify-center mb-4 border border-border">
-                <span className="material-symbols-outlined text-primary">api</span>
+                <Code size={20} className="text-primary" />
               </div>
               <h3 className="font-bold text-text-primary text-lg mb-2">Full API Reference</h3>
               <p className="text-text-secondary mb-4 text-sm">
@@ -86,13 +87,13 @@ print(assets)`
               </p>
               <Link href="/developers/api" className="text-primary font-bold inline-flex items-center gap-1 hover:underline">
                 Explore API Docs
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <ArrowRight size={16} />
               </Link>
             </div>
 
             <div className="bg-white p-8 rounded-[20px] border border-border shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 bg-surface rounded-lg flex items-center justify-center mb-4 border border-border">
-                <span className="material-symbols-outlined text-primary">sync_alt</span>
+                <RefreshCw size={20} className="text-primary" />
               </div>
               <h3 className="font-bold text-text-primary text-lg mb-2">Webhooks & Streaming</h3>
               <p className="text-text-secondary mb-4 text-sm">
@@ -100,7 +101,7 @@ print(assets)`
               </p>
               <Link href="/developers/webhooks" className="text-primary font-bold inline-flex items-center gap-1 hover:underline">
                 Setup Webhooks
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <ArrowRight size={16} />
               </Link>
             </div>
           </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { bookingService } from "@/services/booking.service";
+import { Calendar, Plus, Users, AlertTriangle, PlusCircle } from "lucide-react";
 
 interface BookingSlot {
   id: string;
@@ -35,7 +36,7 @@ export default function BookingPage() {
     async function fetchBookings() {
       try {
         const bookings = await bookingService.list();
-        const mappedSlots: BookingSlot[] = (bookings || []).map((b, i) => {
+        const mappedSlots: BookingSlot[] = (bookings || []).map((b) => {
           const startHour = new Date(b.startTime).getHours();
           const endHour = new Date(b.endTime).getHours();
           const top = (startHour - 9) * 60;
@@ -80,7 +81,7 @@ export default function BookingPage() {
       const [startStr, endStr] = bookingForm.timeRange.split(" - ");
       const today = new Date().toISOString().split("T")[0];
       const newBooking = await bookingService.create({
-        assetId: 4, // Meeting Room B2 Projector
+        assetId: 4,
         startTime: `${today}T${startStr}:00`,
         endTime: `${today}T${endStr}:00`,
       });
@@ -129,7 +130,6 @@ export default function BookingPage() {
 
   return (
     <div className="flex-1 overflow-y-auto p-container bg-surface-bright animate-fade-in">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h2 className="text-label-md text-text-secondary uppercase tracking-wider mb-1">Resource</h2>
@@ -140,17 +140,16 @@ export default function BookingPage() {
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => setIsDateModalOpen(true)} className="px-4 py-2 bg-surface border border-border-subtle rounded text-text-primary text-label-md hover:bg-surface-container-low transition-colors flex items-center gap-2 shadow-sm">
-            <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+            <Calendar size={18} />
             Change Date
           </button>
           <button onClick={() => handleOpenBookingForTime("11:00 - 12:00")} className="px-4 py-2 bg-primary text-on-primary rounded text-label-md hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2 font-medium">
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Plus size={18} />
             Book a slot
           </button>
         </div>
       </div>
 
-      {/* Booking Calendar */}
       <div className="bg-surface-container-lowest border border-border-subtle rounded-lg shadow-sm p-comfortable relative">
         <div className="timeline-grid">
           <div className="flex flex-col text-right pr-4 border-r border-border-subtle text-mono-data text-text-secondary">
@@ -170,7 +169,7 @@ export default function BookingPage() {
                     style={{ top: slot.top, height: slot.height }}>
                     <div className="flex justify-between items-start">
                       <div><h4 className="text-label-md font-bold">{slot.title}</h4><p className="text-body-sm opacity-80">{slot.time}</p></div>
-                      <span className="material-symbols-outlined text-[18px] opacity-70">groups</span>
+                      <Users size={18} className="opacity-70" />
                     </div>
                   </div>
                 );
@@ -180,7 +179,7 @@ export default function BookingPage() {
                   className="absolute left-4 right-8 border-2 border-dashed border-error bg-error-container/30 rounded p-2 z-20 flex flex-col justify-end cursor-pointer"
                   style={{ top: slot.top, height: slot.height }}>
                   <div className="flex items-center gap-2 text-error">
-                    <span className="material-symbols-outlined text-[16px]">warning</span>
+                    <AlertTriangle size={16} />
                     <span className="text-label-md">{slot.title}</span>
                   </div>
                 </div>
@@ -190,14 +189,14 @@ export default function BookingPage() {
               className="absolute left-0 right-4 rounded border border-transparent hover:border-primary border-dashed hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
               style={{ top: 120, height: 60 }}>
               <span className="opacity-0 group-hover:opacity-100 text-primary text-label-md flex items-center gap-1 transition-opacity font-medium">
-                <span className="material-symbols-outlined text-[16px]">add_circle</span>Click to book 11:00 – 12:00
+                <PlusCircle size={16} />Click to book 11:00 – 12:00
               </span>
             </div>
             <div onClick={() => handleOpenBookingForTime("12:00 - 13:00")}
               className="absolute left-0 right-4 rounded border border-transparent hover:border-primary border-dashed hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
               style={{ top: 180, height: 60 }}>
               <span className="opacity-0 group-hover:opacity-100 text-primary text-label-md flex items-center gap-1 transition-opacity font-medium">
-                <span className="material-symbols-outlined text-[16px]">add_circle</span>Click to book 12:00 – 13:00
+                <PlusCircle size={16} />Click to book 12:00 – 13:00
               </span>
             </div>
           </div>

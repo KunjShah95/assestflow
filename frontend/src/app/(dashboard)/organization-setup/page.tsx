@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { departmentService } from "@/services/department.service";
+import { Download, Plus, Search, Pencil, FolderKanban } from "lucide-react";
 
 interface Department {
   name: string;
@@ -28,7 +29,7 @@ export default function OrganizationSetupPage() {
     async function fetchData() {
       try {
         const depts = await departmentService.list();
-        const mapped: Department[] = (depts || []).map((d: any) => ({
+        const mapped: Department[] = (depts || []).map((d) => ({
           name: d.name || "",
           head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
           parent: d.parentDepartmentId ? `Dept #${d.parentDepartmentId}` : "--",
@@ -67,9 +68,8 @@ export default function OrganizationSetupPage() {
       showToast(`Added department: ${newDept.name}`, "success");
       setIsAddModalOpen(false);
       setNewDept({ name: "", head: "", parent: "--", status: "Active" });
-      // Reload
       const depts = await departmentService.list();
-      const mapped: Department[] = (depts || []).map((d: any) => ({
+      const mapped: Department[] = (depts || []).map((d) => ({
         name: d.name || "", head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
         parent: d.parentDepartmentId ? `Dept #${d.parentDepartmentId}` : "--",
         status: d.status === "active" ? "Active" : "Inactive", isChild: !!d.parentDepartmentId,
@@ -95,11 +95,11 @@ export default function OrganizationSetupPage() {
           <div className="flex items-center gap-standard">
             <button onClick={() => showToast("Exporting Organization Hierarchy data...", "info")}
               className="bg-surface-container-lowest border border-border-subtle text-text-primary px-4 py-2 rounded-md text-label-md hover:bg-surface-container-low transition-colors flex items-center gap-2 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>Export
+              <Download size={18} />Export
             </button>
             <button onClick={() => setIsAddModalOpen(true)}
               className="bg-primary text-on-primary px-4 py-2 rounded-md text-label-md hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm font-medium">
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>Add Department
+              <Plus size={18} />Add Department
             </button>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function OrganizationSetupPage() {
         <div className="bg-surface-container-lowest rounded-lg border border-border-subtle shadow-sm overflow-hidden flex flex-col">
           <div className="p-standard border-b border-border-subtle flex flex-col sm:flex-row gap-standard justify-between items-center bg-surface-bright">
             <div className="relative w-full sm:w-72">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">search</span>
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input className="w-full pl-9 pr-3 py-2 border border-border-subtle rounded-md text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-shadow bg-surface-container-lowest" placeholder="Search departments..." type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function OrganizationSetupPage() {
                       </td>
                       <td className="py-3 px-standard text-right opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Editing department ${dept.name}`, "info"); }}
-                          className="text-text-secondary hover:text-primary p-1"><span className="material-symbols-outlined text-sm">edit</span></button>
+                          className="text-text-secondary hover:text-primary p-1"><Pencil size={16} /></button>
                       </td>
                     </tr>
                   ))
@@ -166,7 +166,7 @@ export default function OrganizationSetupPage() {
         </div>
       ) : (
         <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-8 text-center">
-          <span className="material-symbols-outlined text-[48px] text-primary mb-3">folder_managed</span>
+          <FolderKanban size={48} className="text-primary mx-auto mb-3" />
           <h3 className="text-headline-sm text-text-primary mb-1">{activeTab} Management</h3>
           <p className="text-body-sm text-text-secondary max-w-md mx-auto">Configured hierarchies for {activeTab.toLowerCase()} are synced directly with the Asset Directory and Allocation engine.</p>
         </div>
