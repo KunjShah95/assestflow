@@ -6,10 +6,32 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, X, Menu } from "lucide-react";
 
+const DASHBOARD_ROUTES = [
+  "/dashboard",
+  "/organization-setup",
+  "/assets",
+  "/allocation",
+  "/booking",
+  "/maintenance",
+  "/audit",
+  "/reports",
+  "/activity",
+];
+
+function isDashboardRoute(pathname: string) {
+  return DASHBOARD_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  if (isDashboardRoute(pathname)) {
+    return null;
+  }
 
   const guestLinks = [
     { label: "Product", href: "/product" },
