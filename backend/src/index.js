@@ -1,8 +1,8 @@
-const express = require('express');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-const env = require('./config/env');
-const routes = require('./routes');
+import express from 'express';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import { env } from './config/env.js';
+import { router } from './routes/index.js';
 
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Rejection:', reason);
@@ -13,7 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), routes);
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), router);
 
 app.use((err, req, res, next) => {
   console.error(err);

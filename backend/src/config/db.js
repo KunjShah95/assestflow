@@ -1,16 +1,8 @@
-const { drizzle } = require('drizzle-orm/node-postgres');
-const { Pool } = require('pg');
-const env = require('./env');
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+import { env } from './env.js';
 
-const pool = new Pool({
-  connectionString: env.DATABASE_URL,
-});
+const sql = neon(env.DATABASE_URL);
+const db = drizzle(sql);
 
-pool.on('error', (err) => {
-  console.error('Unexpected pool error', err);
-  process.exit(1);
-});
-
-const db = drizzle(pool);
-
-module.exports = { db, pool };
+export { db, sql };
