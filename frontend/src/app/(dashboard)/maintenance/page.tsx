@@ -1,294 +1,97 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
+import { useState, useEffect } from 'react';
+import { maintenanceService } from '@/services/maintenance.service';
+import { assetService } from '@/services/asset.service';
+import type { MaintenanceRequest } from '@/types/maintenance';
+import type { Asset } from '@/types/asset';
 
-interface MaintenanceCard {
-  id: string;
-  title: string;
-  priority?: string;
-  priorityColor?: string;
-  date?: string;
-  assignee?: string;
-  avatar?: string;
-  borderLeft?: boolean;
-  completed?: string;
-}
+interface Column { title: string; color: string; cards: { id: number; title: string; priority?: string; priorityColor?: string; sub?: string; faded?: boolean }[] }
 
-interface Column {
-  title: string;
-  color: string;
-  faded?: boolean;
-  cards: MaintenanceCard[];
-}
+const priorityColors: Record<string, string> = {
+  critical: 'bg-danger/10 text-danger',
+  high: 'bg-danger/10 text-danger',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-surface-container-highest text-text-secondary',
+};
 
 export default function MaintenancePage() {
-  const { showToast } = useToast();
+  const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
+  const [assetMap, setAssetMap] = useState<Record<number, string>>({});
+  const [loading, setLoading] = useState(true);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form, setForm] = useState({
-    assetId: "AF-0125",
-    title: "",
-    priority: "High",
-  });
+  useEffect(() => {
+    Promise.all([
+      maintenanceService.list(),
+      assetService.list(),
+    ]).then(([reqRes, assetRes]) => {
+      setRequests(reqRes.value || []);
+      const map: Record<number, string> = {};
+      (assetRes.value || []).forEach(a => { map[a.id] = a.name; });
+      setAssetMap(map);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
 
-  const [columns, setColumns] = useState<Column[]>([
-    {
-      title: "Pending",
-      color: "bg-warning",
-      cards: [
-        { id: "AF-0062", title: "Projector bulb not turning on", priority: "High", priorityColor: "bg-danger/10 text-danger", date: "Reported: Today" },
-        { id: "AF-0112", title: "Leaking water cooler in Breakroom B", priority: "Med", priorityColor: "bg-warning/10 text-warning", date: "Reported: Yesterday" },
-      ],
-    },
-    {
-      title: "Approved",
-      color: "bg-info",
-      cards: [
-        {
-          id: "AF-003",
-          title: "AC unit noisy compressor",
-          priority: "Low",
-          priorityColor: "bg-surface-container-highest text-text-secondary",
-          assignee: "Unassigned",
-          borderLeft: true,
-        },
-      ],
-    },
-    {
-      title: "In Progress",
-      color: "bg-primary",
-      cards: [
-        {
-          id: "AF-0078",
-          title: "Forklift engine diagnostic",
-          priority: "High",
-          priorityColor: "bg-danger/10 text-danger",
-          assignee: "Tech: R. Varma",
-          avatar: "RV",
-        },
-      ],
-    },
-    {
-      title: "Resolved",
-      color: "bg-success",
-      faded: true,
-      cards: [
-        { id: "AF-897", title: "Printer Jam - parts ordered & replaced", completed: "Completed: 5 Jul" },
-        { id: "AF-873", title: "Chair repair - caster replacement", completed: "Completed: 7 Jul" },
-      ],
-    },
-  ]);
+  const columns: Column[] = [
+    { title: 'Pending', color: 'bg-warning', cards: requests.filter(r => r.status === 'pending').map(r => ({ id: r.id, title: r.description, priority: r.priority, priorityColor: priorityColors[r.priority] || '', sub: `Asset #${r.assetId}` })) },
+    { title: 'Approved', color: 'bg-info', cards: requests.filter(r => r.status === 'approved').map(r => ({ id: r.id, title: r.description, priority: r.priority, priorityColor: priorityColors[r.priority] || '', sub: `Asset #${r.assetId}` })) },
+    { title: 'In Progress', color: 'bg-primary', cards: requests.filter(r => r.status === 'in_progress').map(r => ({ id: r.id, title: r.description, priority: r.priority, priorityColor: priorityColors[r.priority] || '', sub: `Asset #${r.assetId}` })) },
+    { title: 'Resolved', color: 'bg-success', cards: requests.filter(r => r.status === 'resolved').map(r => ({ id: r.id, title: r.description, faded: true, sub: `Asset #${r.assetId}` })) },
+  ];
 
-  const handleCreateRequest = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.title.trim()) {
-      showToast("Please describe the maintenance issue", "error");
-      return;
-    }
+  async function handleAction(id: number, action: 'approve' | 'reject' | 'resolve') {
+    try {
+      if (action === 'approve') await maintenanceService.approve(id);
+      else if (action === 'reject') await maintenanceService.reject(id);
+      else await maintenanceService.resolve(id);
+      const res = await maintenanceService.list();
+      setRequests(res.value || []);
+    } catch { /* ignore */ }
+  }
 
-    const priorityColor =
-      form.priority === "High"
-        ? "bg-danger/10 text-danger"
-        : form.priority === "Med"
-        ? "bg-warning/10 text-warning"
-        : "bg-surface-container-highest text-text-secondary";
-
-    const newCard: MaintenanceCard = {
-      id: form.assetId,
-      title: form.title,
-      priority: form.priority,
-      priorityColor,
-      date: "Reported: Just now",
-    };
-
-    setColumns(
-      columns.map((col) =>
-        col.title === "Pending"
-          ? { ...col, cards: [newCard, ...col.cards] }
-          : col
-      )
-    );
-
-    showToast(`Maintenance request logged for ${form.assetId}`, "success");
-    setIsModalOpen(false);
-    setForm({ assetId: `AF-${Math.floor(100 + Math.random() * 900)}`, title: "", priority: "High" });
-  };
+  if (loading) return <div className="flex-1 flex items-center justify-center"><div className="text-text-secondary animate-pulse">Loading...</div></div>;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-surface animate-fade-in">
-      {/* Page Header */}
       <div className="px-container py-comfortable border-b border-border-subtle bg-surface-container-lowest shrink-0 flex justify-between items-center">
         <div>
           <h1 className="text-headline-lg text-text-primary">Maintenance Board</h1>
-          <p className="text-body-sm text-text-secondary mt-1">
-            Track and manage asset repairs and servicing
-          </p>
-        </div>
-        <div className="flex gap-standard">
-          <div className="relative">
-            <span
-              className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
-              style={{ fontSize: 18 }}
-            >
-              search
-            </span>
-            <input
-              className="pl-10 pr-4 py-2 border border-border-subtle rounded bg-surface-container-lowest text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64 transition-shadow"
-              placeholder="Search tasks..."
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary text-on-primary px-4 py-2 rounded text-label-md flex items-center gap-2 hover:bg-primary/90 transition-colors font-medium shadow-sm"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-              add
-            </span>
-            New Request
-          </button>
+          <p className="text-body-sm text-text-secondary mt-1">{requests.length} total requests</p>
         </div>
       </div>
 
-      {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-container">
         <div className="flex gap-container h-full min-w-max">
-          {columns.map((col) => {
-            const visibleCards = col.cards.filter(
-              (c) =>
-                c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                c.id.toLowerCase().includes(searchQuery.toLowerCase())
-            );
+          {columns.map(col => (
+            <div key={col.title} className={`w-80 flex flex-col bg-surface-container-low rounded-lg p-standard border border-border-subtle shrink-0`} style={{ minHeight: 'calc(100vh - 200px)' }}>
+              <div className="flex justify-between items-center mb-standard">
+                <h2 className="text-headline-sm text-text-primary flex items-center gap-2 uppercase tracking-wide">
+                  <span className={`w-2 h-2 rounded-full ${col.color}`} />
+                  {col.title}
+                </h2>
+                <span className="text-mono-data bg-surface-container-highest px-2 py-1 rounded text-text-secondary">{col.cards.length}</span>
+              </div>
 
-            return (
-              <div
-                key={col.title}
-                className={`w-80 flex flex-col bg-surface-container-low rounded-lg p-standard border border-border-subtle shrink-0 ${
-                  col.faded ? "opacity-80 hover:opacity-100 transition-opacity" : ""
-                }`}
-                style={{ minHeight: "calc(100vh - 200px)" }}
-              >
-                {/* Column Header */}
-                <div className="flex justify-between items-center mb-standard">
-                  <h2 className="text-headline-sm text-text-primary flex items-center gap-2 uppercase tracking-wide">
-                    <span className={`w-2 h-2 rounded-full ${col.color}`} />
-                    {col.title}
-                  </h2>
-                  <span className="text-mono-data bg-surface-container-highest px-2 py-1 rounded text-text-secondary font-semibold">
-                    {visibleCards.length}
-                  </span>
-                </div>
-
-                {/* Cards */}
-                <div className="flex flex-col gap-standard overflow-y-auto pr-1 pb-4">
-                  {visibleCards.length === 0 ? (
-                    <p className="text-body-sm text-text-secondary italic text-center py-4">
-                      No matching tasks
-                    </p>
-                  ) : (
-                    visibleCards.map((card) => {
-                      if ("completed" in card && card.completed) {
-                        return (
-                          <div
-                            key={card.id}
-                            onClick={() =>
-                              showToast(`Resolved task: ${card.title}`, "info")
-                            }
-                            className="bg-success/5 border border-success/20 rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-sm"
-                          >
-                            <div className="flex justify-between items-start">
-                              <span className="text-mono-data font-bold text-text-secondary line-through">
-                                {card.id}
-                              </span>
-                            </div>
-                            <div className="text-label-md text-text-secondary">
-                              {card.title}
-                            </div>
-                            <div className="flex items-center gap-1 text-success mt-2">
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 14 }}
-                              >
-                                check_circle
-                              </span>
-                              <span className="text-[11px] font-medium">
-                                {card.completed}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div
-                          key={card.id}
-                          onClick={() =>
-                            showToast(`Active Ticket ${card.id}: ${card.title}`, "info")
-                          }
-                          className={`bg-surface-container-lowest border border-border-subtle rounded-lg p-standard cursor-pointer transition-all flex flex-col gap-compact hover:shadow-md ${
-                            card.borderLeft ? "border-l-2 border-l-info" : ""
-                          }`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <span className="text-mono-data font-bold text-text-primary">
-                              {card.id}
-                            </span>
-                            {card.priority && (
-                              <span
-                                className={`${card.priorityColor} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider`}
-                              >
-                                {card.priority}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-label-md text-text-primary line-clamp-2">
-                            {card.title}
-                          </div>
-                          {card.date && (
-                            <div className="flex items-center gap-1 text-text-secondary mt-2">
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 14 }}
-                              >
-                                calendar_today
-                              </span>
-                              <span className="text-[11px]">{card.date}</span>
-                            </div>
-                          )}
-                          {card.assignee && (
-                            <div className="mt-2 pt-2 border-t border-border-subtle flex justify-between items-center">
-                              <div
-                                className={`flex items-center gap-1 ${
-                                  card.avatar ? "text-primary" : "text-text-secondary"
-                                }`}
-                              >
-                                <span
-                                  className="material-symbols-outlined"
-                                  style={{ fontSize: 14 }}
-                                >
-                                  engineering
-                                </span>
-                                <span className="text-[11px] font-medium">
-                                  {card.assignee}
-                                </span>
-                              </div>
-                              {card.avatar && (
-                                <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-text-secondary">
-                                  {card.avatar}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+              <div className="flex flex-col gap-standard overflow-y-auto pr-1 pb-4">
+                {col.cards.length === 0 ? (
+                  <div className="text-body-sm text-text-secondary text-center py-8">No requests</div>
+                ) : col.cards.map(card => (
+                  <div key={card.id} className={`bg-surface-container-lowest border border-border-subtle rounded-lg p-standard cursor-pointer kanban-card transition-all flex flex-col gap-compact ${card.faded ? 'opacity-70' : ''}`}>
+                    <div className="flex justify-between items-start">
+                      <span className="text-mono-data font-bold text-text-primary">#{card.id}</span>
+                      {card.priority && <span className={`${card.priorityColor} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider`}>{card.priority}</span>}
+                    </div>
+                    <div className="text-label-md text-text-primary line-clamp-2">{card.title}</div>
+                    {card.sub && <div className="text-body-sm text-text-secondary">{card.sub}</div>}
+                    <div className="mt-2 pt-2 border-t border-border-subtle flex gap-2">
+                      {col.title === 'Pending' && <>
+                        <button onClick={() => handleAction(card.id, 'approve')} className="text-[11px] text-success hover:underline">Approve</button>
+                        <button onClick={() => handleAction(card.id, 'reject')} className="text-[11px] text-danger hover:underline">Reject</button>
+                      </>}
+                      {col.title === 'Approved' && <button onClick={() => handleAction(card.id, 'resolve')} className="text-[11px] text-primary hover:underline">Mark Resolved</button>}
+                    </div>
+                  </div>
+                ))}
               </div>
             );
           })}

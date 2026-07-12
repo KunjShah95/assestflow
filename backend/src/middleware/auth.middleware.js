@@ -1,0 +1,30 @@
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
+import { db } from '../config/db.js';
+import { employees } from '../models/schema.js';
+import { eq } from 'drizzle-orm';
+
+export async function authenticate(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const token = header.split(' ')[1];
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    const [employee] = await db.select()
+      .from(employees)
+      .where(eq(employees.id, decoded.id))
+      .limit(1);
+
+    if (!employee || employee.status !== 'active') {
+      return res.status(401).json({ error: 'Account not found or inactive' });
+    }
+
+    req.user = { id: employee.id, email: employee.email, role: employee.role, name: employee.name, departmentId: employee.departmentId };
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
