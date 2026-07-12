@@ -82,6 +82,7 @@ export default function OrganizationSetupPage() {
       ]);
 
       const employeeNameById = new Map((emps || []).map((e: Employee) => [e.id, e.name]));
+      const departmentNameById = new Map((depts || []).map((d: Department) => [d.id, d.name]));
 
       const mappedDepts: DeptRow[] = (depts || []).map((d: Department, index: number) => ({
         id: d.id || index,
@@ -89,7 +90,9 @@ export default function OrganizationSetupPage() {
         head: d.headEmployeeId
           ? employeeNameById.get(d.headEmployeeId) ?? "Unknown"
           : "TBD",
-        parent: d.parentDepartmentId ? `Dept #${d.parentDepartmentId}` : "--",
+        parent: d.parentDepartmentId
+          ? departmentNameById.get(d.parentDepartmentId) ?? "Unknown"
+          : "--",
         status: d.status === "active" ? "Active" : "Inactive",
         isChild: !!d.parentDepartmentId,
       }));
