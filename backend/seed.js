@@ -1,10 +1,28 @@
 import bcrypt from 'bcryptjs';
-import { db } from './src/config/db.js';
+import { db, sql } from './src/config/db.js';
 import { employees, departments, assetCategories, assets } from './src/models/schema.js';
 import { eq } from 'drizzle-orm';
 
 async function seed() {
   console.log('Seeding database...');
+
+  // Clear existing data in reverse FK order
+  console.log('Clearing existing data...');
+  await sql`TRUNCATE TABLE assets CASCADE`;
+  await sql`TRUNCATE TABLE allocations CASCADE`;
+  await sql`TRUNCATE TABLE transfers CASCADE`;
+  await sql`TRUNCATE TABLE bookings CASCADE`;
+  await sql`TRUNCATE TABLE maintenance_requests CASCADE`;
+  await sql`TRUNCATE TABLE audit_cycles CASCADE`;
+  await sql`TRUNCATE TABLE audit_assignments CASCADE`;
+  await sql`TRUNCATE TABLE audit_results CASCADE`;
+  await sql`TRUNCATE TABLE notifications CASCADE`;
+  await sql`TRUNCATE TABLE activity_logs CASCADE`;
+  await sql`TRUNCATE TABLE policies CASCADE`;
+  await sql`TRUNCATE TABLE asset_categories CASCADE`;
+  await sql`TRUNCATE TABLE employees CASCADE`;
+  await sql`TRUNCATE TABLE departments CASCADE`;
+  console.log('Existing data cleared.');
 
   const [eng] = await db.insert(departments).values({ name: 'Engineering', description: 'Software & Hardware Engineering' }).returning();
   const [mkt] = await db.insert(departments).values({ name: 'Marketing', description: 'Marketing & Communications' }).returning();

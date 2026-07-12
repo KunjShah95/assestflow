@@ -33,13 +33,15 @@ Express 5 Controllers → 7 Engines → Drizzle ORM → NeonDB (Serverless Postg
 
 ## Quick Start
 
+### Backend
+
 ```bash
 # 1. Install dependencies
 cd backend && npm install
 
 # 2. Set up environment
 cp .env.example .env
-# Edit .env with your NeonDB connection string
+# Edit .env with your NeonDB connection string and a JWT secret
 
 # 3. Push schema to database
 npx drizzle-kit push
@@ -49,6 +51,20 @@ node seed.js
 
 # 5. Start server
 node src/index.js
+```
+
+### Frontend
+
+```bash
+# 1. Install dependencies
+cd frontend && npm install
+
+# 2. Set up environment
+cp .env.example .env.local
+# Edit .env.local if your backend runs on a different URL
+
+# 3. Start dev server
+npm run dev
 ```
 
 Server runs on `http://localhost:3001`.
