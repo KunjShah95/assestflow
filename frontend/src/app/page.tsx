@@ -70,13 +70,19 @@ export default function Home() {
             Unify asset intelligence across global operations. AssetFlow provides a single source of truth for every machine, license, and capital asset.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-reveal active transition-delay-200">
-            <button className="w-full sm:w-auto bg-text-primary text-white px-8 py-4 rounded-full font-button text-button hover:bg-black transition-all">
+            <Link
+              href="/login"
+              className="w-full sm:w-auto bg-text-primary text-white px-8 py-4 rounded-full font-button text-button hover:bg-black transition-all inline-block text-center"
+            >
               Start Your Implementation
-            </button>
-            <button className="w-full sm:w-auto bg-white border border-border text-text-primary px-8 py-4 rounded-full font-button text-button hover:border-text-primary transition-all flex items-center justify-center gap-2">
+            </Link>
+            <Link
+              href="/solutions"
+              className="w-full sm:w-auto bg-white border border-border text-text-primary px-8 py-4 rounded-full font-button text-button hover:border-text-primary transition-all flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined">play_circle</span>
               Watch System Overview
-            </button>
+            </Link>
           </div>
           <div className="relative max-w-5xl mx-auto animate-reveal active transition-delay-400">
             <div className="rounded-2xl border border-border shadow-2xl bg-white overflow-hidden p-2">

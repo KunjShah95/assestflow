@@ -81,9 +81,12 @@ export default function Navbar() {
               <Link href="/login" className="text-text-secondary font-button text-button px-4 py-2 hover:text-primary transition-colors">
                 Log In
               </Link>
-              <button className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all shadow-sm">
+              <Link
+                href="/contact"
+                className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all shadow-sm"
+              >
                 Book Demo
-              </button>
+              </Link>
             </div>
           )}
 
@@ -135,9 +138,12 @@ export default function Navbar() {
               <Link href="/login" className="text-text-secondary text-center py-2 hover:text-primary transition-colors">
                 Log In
               </Link>
-              <button className="w-full bg-primary text-on-primary py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all text-center">
+              <Link
+                href="/contact"
+                className="w-full bg-primary text-on-primary py-2.5 rounded-full font-button text-button hover:bg-accent-hover transition-all text-center block"
+              >
                 Book Demo
-              </button>
+              </Link>
             </div>
           )}
         </div>
