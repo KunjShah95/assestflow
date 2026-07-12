@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ToastProvider } from "@/components/ToastProvider";
 import Navbar from "@/components/Navbar";
 
 const inter = Inter({
@@ -29,8 +30,10 @@ export default function RootLayout({
         <div className="absolute inset-0 radial-glow pointer-events-none z-0"></div>
         <div className="relative z-10 flex-1 flex flex-col">
           <AuthProvider>
-            <Navbar />
-            {children}
+            <ToastProvider>
+              <Navbar />
+              {children}
+            </ToastProvider>
           </AuthProvider>
         </div>
       </body>

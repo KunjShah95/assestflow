@@ -4,9 +4,11 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { setToken } from "@/lib/api-client";
+import { useToast } from "@/components/ToastProvider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("admin@assetflow.com");
   const [password, setPassword] = useState("password123");
   const [name, setName] = useState("");
@@ -18,6 +20,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
+    // Show toast for visual feedback similar to mockup
+    showToast("Signing in to AssetFlow Enterprise...", "info");
+
     try {
       if (isSignup) {
         await authService.signup({ email, password, name });
@@ -36,26 +42,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-surface min-h-screen flex items-center justify-center text-body-md text-text-primary p-4 radial-glow">
-      <div className="w-full max-w-md bg-surface-container-lowest border-2 border-text-primary/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 flex flex-col items-center animate-fade-in">
-        {/* Card Header matching wireframe "AssetFlow - login" */}
-        <h2 className="text-headline-md font-bold text-text-primary mb-6">
-          AssetFlow - {isSignup ? "Sign Up" : "login"}
-        </h2>
-
+    <div className="bg-[#F8FAFC] min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-[16px] shadow-sm p-8 flex flex-col items-center">
+        
         {/* Circular Logo 'AF' */}
-        <div className="w-16 h-16 bg-surface-container-low rounded-full flex items-center justify-center mb-6 border-2 border-text-primary/20 shadow-inner">
-          <span className="text-headline-md font-bold text-primary">AF</span>
+        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+          <span className="text-[18px] font-bold text-[#0F172A]">AF</span>
         </div>
+
+        {/* Card Header */}
+        <h2 className="text-[24px] font-bold text-[#0052CC] mb-8">
+          AssetFlow
+        </h2>
 
         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
           {isSignup && (
-            <div>
-              <label className="block text-label-md font-semibold text-text-secondary mb-1" htmlFor="name">
+            <div className="flex flex-col gap-1">
+              <label className="text-[13px] font-bold text-[#475569]" htmlFor="name">
                 Name
               </label>
               <input
-                className="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-body-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+                className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] transition-colors"
                 id="name"
                 name="name"
                 type="text"
@@ -66,12 +73,13 @@ export default function LoginPage() {
               />
             </div>
           )}
-          <div>
-            <label className="block text-label-md font-semibold text-text-secondary mb-1" htmlFor="email">
+          
+          <div className="flex flex-col gap-1">
+            <label className="text-[13px] font-bold text-[#475569]" htmlFor="email">
               Email
             </label>
             <input
-              className="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-body-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+              className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] transition-colors"
               id="email"
               name="email"
               type="email"
@@ -81,25 +89,24 @@ export default function LoginPage() {
               required
             />
           </div>
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-label-md font-semibold text-text-secondary" htmlFor="password">
-                Password
-              </label>
-            </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[13px] font-bold text-[#475569]" htmlFor="password">
+              Password
+            </label>
             <input
-              className="w-full bg-surface-container-lowest border border-border-subtle rounded-lg text-body-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+              className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] tracking-[0.2em] transition-colors"
               id="password"
               name="password"
               type="password"
-              placeholder="********"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
             {!isSignup && (
-              <div className="text-right mt-1.5">
-                <a href="#" className="text-label-md text-primary hover:underline font-medium">
+              <div className="text-right mt-0.5">
+                <a href="#" className="text-[12px] text-[#64748B] hover:text-[#0052CC] font-semibold">
                   Forgot password
                 </a>
               </div>
@@ -107,7 +114,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-error-container text-on-error-container text-body-sm p-3 rounded-lg border border-error/20 font-medium">
+            <div className="bg-[#FEF2F2] text-[#DC2626] text-[13px] p-3 rounded-[6px] border border-[#FCA5A5] font-medium mt-2">
               {error}
             </div>
           )}
@@ -115,16 +122,16 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-surface-tint text-on-primary text-label-md uppercase rounded-lg py-3 px-4 transition-colors font-bold shadow-md hover:shadow-lg disabled:opacity-50 mt-2 cursor-pointer"
+            className="w-full bg-[#0052CC] hover:bg-[#0047B3] text-white text-[13px] uppercase tracking-wide rounded-[6px] py-3 mt-1 transition-colors font-bold shadow-sm disabled:opacity-70 cursor-pointer"
           >
-            {loading ? "Please wait..." : isSignup ? "Create Account" : "Sign In"}
+            {loading ? "Please wait..." : isSignup ? "CREATE ACCOUNT" : "SIGN IN"}
           </button>
 
           {!isSignup ? (
-            <div className="mt-6 pt-6 border-t border-border-subtle w-full flex flex-col items-center text-center">
-              <span className="text-label-md text-text-secondary mb-2 block font-semibold">New here?</span>
-              <div className="w-full bg-surface-container-low border border-border-subtle rounded-lg p-3 text-body-sm text-text-secondary mb-4 leading-relaxed">
-                Sign up creates an employee account admin roles assigned later
+            <div className="mt-4 pt-4 border-t border-[#E2E8F0] w-full flex flex-col text-left">
+              <span className="text-[13px] text-[#0F172A] mb-2 font-bold">New here?</span>
+              <div className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-3 py-2.5 text-[13px] text-[#475569] mb-4">
+                Sign up creates an employee account — admin roles assigned later
               </div>
               <button
                 type="button"
@@ -132,20 +139,20 @@ export default function LoginPage() {
                   setIsSignup(true);
                   setError("");
                 }}
-                className="w-full border-2 border-primary text-primary hover:bg-primary/5 text-label-md uppercase font-bold rounded-lg py-2.5 px-4 transition-all cursor-pointer"
+                className="w-full bg-[#0052CC] hover:bg-[#0047B3] text-white text-[13px] uppercase tracking-wide rounded-[6px] py-3 transition-colors font-bold shadow-sm cursor-pointer"
               >
-                Create Account
+                CREATE ACCOUNT
               </button>
             </div>
           ) : (
-            <div className="mt-4 pt-4 border-t border-border-subtle text-center">
+            <div className="mt-4 pt-4 border-t border-[#E2E8F0] text-center">
               <button
                 type="button"
                 onClick={() => {
                   setIsSignup(false);
                   setError("");
                 }}
-                className="text-label-md text-primary hover:underline font-semibold"
+                className="text-[13px] text-[#0052CC] hover:underline font-bold cursor-pointer"
               >
                 Already have an account? Sign In
               </button>
