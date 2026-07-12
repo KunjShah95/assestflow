@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from "react";
 import Modal from "@/components/Modal";
 import { useApiError } from "@/hooks/useApiError";
@@ -8,6 +9,16 @@ import { Calendar, Plus, Users, AlertTriangle, PlusCircle, Trash2 } from "lucide
 
 const START_HOUR = 0;
 const END_HOUR = 24;
+=======
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Modal from "@/components/Modal";
+import { useApiError } from "@/hooks/useApiError";
+import { bookingService } from "@/services/booking.service";
+import { assetService } from "@/services/asset.service";
+import type { Asset } from "@/types/asset";
+import type { Booking } from "@/types/booking";
+import { Calendar, Plus, Users, PlusCircle } from "lucide-react";
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
 
 interface BookingSlot {
   id: string;
@@ -15,7 +26,44 @@ interface BookingSlot {
   time: string;
   top: number;
   height: number;
-  type: "booked" | "conflict";
+}
+
+const TIMELINE_START_HOUR = 9;
+const TIMELINE_END_HOUR = 18;
+const ROW_HEIGHT = 60;
+
+function minutesFromMidnight(date: Date): number {
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+function formatTime12(date: Date): string {
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+function slotFromBooking(b: Booking, purpose?: string): BookingSlot {
+  const start = new Date(b.startTime);
+  const end = new Date(b.endTime);
+  const startMin = minutesFromMidnight(start);
+  const endMin = minutesFromMidnight(end);
+  const label = b.status === "cancelled"
+    ? "Cancelled"
+    : purpose
+      ? purpose
+      : `Booked – ${b.status}`;
+  return {
+    id: `b-${b.id}`,
+    title: label,
+    time: `${formatTime12(start)} – ${formatTime12(end)}`,
+    top: Math.max(0, startMin - TIMELINE_START_HOUR * 60),
+    height: Math.max(endMin - startMin, 30),
+  };
+}
+
+function toDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export default function BookingPage() {
@@ -23,22 +71,36 @@ export default function BookingPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState("Today");
+  const [bookableAssets, setBookableAssets] = useState<Asset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
-  const [tempDateInput, setTempDateInput] = useState(new Date().toISOString().split("T")[0]);
+  const [tempDateInput, setTempDateInput] = useState(toDateString(new Date()));
 
   const [bookingForm, setBookingForm] = useState({
-    title: "Engineering Review",
+    title: "",
     timeRange: "11:00 - 12:00",
-    department: "Engineering",
   });
 
   const [slots, setSlots] = useState<BookingSlot[]>([]);
 
+  const selectedAsset = bookableAssets.find((a) => a.id === selectedAssetId) ?? bookableAssets[0] ?? null;
+
+  const loadBookings = useCallback(async (assetId: number, date: string) => {
+    const dayStart = `${date}T00:00:00`;
+    const dayEnd = `${date}T23:59:59`;
+    const bookings = await bookingService.calendar(assetId, dayStart, dayEnd);
+    const mapped = (bookings || [])
+      .filter((b) => b.status !== "cancelled")
+      .map((b) => slotFromBooking(b));
+    setSlots(mapped);
+  }, []);
+
   useEffect(() => {
-    async function fetchBookings() {
+    async function init() {
       try {
+<<<<<<< HEAD
         const bookings = await bookingService.list();
         const mappedSlots: BookingSlot[] = (bookings || []).map((b) => {
           const startDate = new Date(b.startTime);
@@ -71,11 +133,39 @@ export default function BookingPage() {
           { id: "b1", title: "Booked – Procurement Team", time: "09:00 to 10:30", top: 9 * 60, height: 90, type: "booked" },
           { id: "b2", title: "Requested 09:30 to 10:30 – conflict", time: "09:30 to 10:30", top: 9.5 * 60, height: 60, type: "conflict" },
         ]);
+=======
+        const assets = await assetService.list();
+        const bookable = (assets || []).filter((a) => a.isBookable);
+        setBookableAssets(bookable);
+        if (bookable.length > 0) {
+          setSelectedAssetId(bookable[0].id);
+          await loadBookings(bookable[0].id, selectedDate);
+        }
+      } catch (err) {
+        handleError(err, "Could not load booking data");
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
       } finally {
         setLoading(false);
       }
     }
-    fetchBookings();
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (selectedAssetId) {
+      loadBookings(selectedAssetId, selectedDate).catch((err) =>
+        handleError(err, "Could not load bookings for this date")
+      );
+    }
+  }, [selectedAssetId, selectedDate, loadBookings, handleError]);
+
+  const timelineHeight = (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * ROW_HEIGHT;
+  const hourLabels = useMemo(() => {
+    const labels: string[] = [];
+    for (let h = TIMELINE_START_HOUR; h < TIMELINE_END_HOUR; h++) {
+      labels.push(`${h}:00`);
+    }
+    return labels;
   }, []);
 
   // Scroll to 8:00 AM position initially once loaded
@@ -109,19 +199,23 @@ export default function BookingPage() {
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingForm.title) {
+    if (!selectedAssetId) {
+      showToast("No bookable resource selected", "error");
+      return;
+    }
+    if (!bookingForm.title.trim()) {
       showToast("Please enter a meeting/booking title", "error");
       return;
     }
     try {
       const [startStr, endStr] = bookingForm.timeRange.split(" - ");
-      const today = new Date().toISOString().split("T")[0];
-      const newBooking = await bookingService.create({
-        assetId: 4,
-        startTime: `${today}T${startStr}:00`,
-        endTime: `${today}T${endStr}:00`,
+      await bookingService.create({
+        assetId: selectedAssetId,
+        startTime: `${selectedDate}T${startStr}:00`,
+        endTime: `${selectedDate}T${endStr}:00`,
       });
 
+<<<<<<< HEAD
       const startHour = parseInt(startStr.split(":")[0]);
       const endHour = parseInt(endStr.split(":")[0]);
       const top = startHour * 60;
@@ -137,7 +231,12 @@ export default function BookingPage() {
       };
       setSlots([...slots, newSlot]);
       showToast(`Confirmed slot booking: ${bookingForm.title} (${bookingForm.timeRange})`, "success");
+=======
+      await loadBookings(selectedAssetId, selectedDate);
+      showToast(`Confirmed: ${bookingForm.title} (${bookingForm.timeRange})`, "success");
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
       setIsBookModalOpen(false);
+      setBookingForm({ title: "", timeRange: "11:00 - 12:00" });
     } catch (err) {
       handleError(err, "Booking failed");
     }
@@ -145,16 +244,18 @@ export default function BookingPage() {
 
   const handleUpdateDate = (e: React.FormEvent) => {
     e.preventDefault();
-    const dateObj = new Date(tempDateInput);
+    const dateObj = new Date(`${tempDateInput}T12:00:00`);
     if (isNaN(dateObj.getTime())) {
       showToast("Invalid date selected", "error");
       return;
     }
-    const formatted = dateObj.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
-    setSelectedDate(formatted);
-    showToast(`Switched calendar to ${formatted}`, "info");
+    setSelectedDate(tempDateInput);
     setIsDateModalOpen(false);
   };
+
+  const dateLabel = selectedDate === toDateString(new Date())
+    ? "Today"
+    : new Date(`${selectedDate}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
 
   if (loading) {
     return (
@@ -176,11 +277,22 @@ export default function BookingPage() {
         <div>
           <h2 className="text-label-md text-text-secondary uppercase tracking-wider mb-1">Resource</h2>
           <h1 className="text-headline-lg text-text-primary flex items-center gap-2">
-            Conference Room B2
-            <span className="text-text-secondary text-headline-sm">– {selectedDate}</span>
+            {selectedAsset?.name ?? "No resource"}
+            <span className="text-text-secondary text-headline-sm">– {dateLabel}</span>
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {bookableAssets.length > 1 && (
+            <select
+              value={selectedAssetId ?? ""}
+              onChange={(e) => setSelectedAssetId(parseInt(e.target.value))}
+              className="px-3 py-2 bg-surface border border-border-subtle rounded text-body-sm"
+            >
+              {bookableAssets.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          )}
           <button onClick={() => setIsDateModalOpen(true)} className="px-4 py-2 bg-surface border border-border-subtle rounded text-text-primary text-label-md hover:bg-surface-container-low transition-colors flex items-center gap-2 shadow-sm">
             <Calendar size={18} />
             Change Date
@@ -192,6 +304,7 @@ export default function BookingPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
       <div className="bg-surface-container-lowest border border-border-subtle rounded-lg shadow-sm relative overflow-hidden">
         {/* Scrollable Container */}
         <div ref={scrollContainerRef} className="h-[550px] overflow-y-auto p-comfortable relative scroll-smooth">
@@ -275,24 +388,79 @@ export default function BookingPage() {
                   </div>
                 );
               })}
+=======
+      {bookableAssets.length === 0 ? (
+        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-8 text-center text-text-secondary">
+          No bookable resources found in the asset directory.
+        </div>
+      ) : (
+        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg shadow-sm p-comfortable relative">
+          <div className="timeline-grid">
+            <div className="flex flex-col text-right pr-4 border-r border-border-subtle text-mono-data text-text-secondary">
+              {hourLabels.map((time, i) => (
+                <div key={time} className={`timeline-row flex items-start justify-end pt-1 ${i === hourLabels.length - 1 ? "border-b-0" : ""}`}>
+                  <span>{time}</span>
+                </div>
+              ))}
+            </div>
+            <div className="relative w-full overflow-y-auto" style={{ height: timelineHeight }}>
+              {hourLabels.map((_, i) => (
+                <div key={i} className={`timeline-row ${i === hourLabels.length - 1 ? "border-b-0" : ""}`} />
+              ))}
+              {slots.map((slot) => (
+                <div
+                  key={slot.id}
+                  onClick={() => showToast(`${slot.title} (${slot.time})`, "info")}
+                  className="absolute left-0 right-4 bg-primary-fixed border border-primary text-on-primary-fixed rounded p-3 shadow-sm z-10 cursor-pointer hover:opacity-95 transition-opacity"
+                  style={{ top: slot.top, height: slot.height }}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-label-md font-bold truncate">{slot.title}</h4>
+                      <p className="text-body-sm opacity-80">{slot.time}</p>
+                    </div>
+                    <Users size={18} className="opacity-70 shrink-0" />
+                  </div>
+                </div>
+              ))}
+              {slots.length === 0 && (
+                <div
+                  onClick={() => handleOpenBookingForTime("11:00 - 12:00")}
+                  className="absolute left-0 right-4 rounded border border-dashed border-border-subtle hover:border-primary hover:bg-surface-container-low transition-all cursor-pointer z-0 flex items-center justify-center group"
+                  style={{ top: 120, height: 60 }}
+                >
+                  <span className="text-text-secondary group-hover:text-primary text-label-md flex items-center gap-1 font-medium">
+                    <PlusCircle size={16} />Click to book 11:00 – 12:00
+                  </span>
+                </div>
+              )}
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable">
-          <h3 className="text-headline-sm mb-3">Resource Details</h3>
-          <dl className="space-y-2 text-body-sm">
-            {[{ label: "Capacity", value: "12 People" }, { label: "Equipment", value: "Projector, Whiteboard" }, { label: "Location", value: "Floor 2, East Wing" }].map((item) => (
-              <div key={item.label} className="flex justify-between border-b border-surface-container-high pb-1 last:border-b-0">
-                <dt className="text-text-secondary">{item.label}</dt>
-                <dd className="font-medium text-text-primary">{item.value}</dd>
+      {selectedAsset && (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-surface-container-lowest border border-border-subtle rounded-lg p-comfortable">
+            <h3 className="text-headline-sm mb-3">Resource Details</h3>
+            <dl className="space-y-2 text-body-sm">
+              <div className="flex justify-between border-b border-surface-container-high pb-1">
+                <dt className="text-text-secondary">Tag</dt>
+                <dd className="font-medium text-text-primary">{selectedAsset.assetTag}</dd>
               </div>
-            ))}
-          </dl>
+              <div className="flex justify-between border-b border-surface-container-high pb-1">
+                <dt className="text-text-secondary">Location</dt>
+                <dd className="font-medium text-text-primary">{selectedAsset.location || "N/A"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-text-secondary">Status</dt>
+                <dd className="font-medium text-text-primary capitalize">{selectedAsset.status}</dd>
+              </div>
+            </dl>
+          </div>
         </div>
-      </div>
+      )}
 
       <Modal isOpen={isDateModalOpen} onClose={() => setIsDateModalOpen(false)} title="Select Schedule Date">
         <form onSubmit={handleUpdateDate} className="space-y-4">
@@ -311,10 +479,11 @@ export default function BookingPage() {
         <form onSubmit={handleSubmitBooking} className="space-y-4">
           <div>
             <label className="block text-label-md mb-1" htmlFor="book-title">Booking Title / Purpose</label>
-            <input id="book-title" type="text" placeholder="e.g. Q3 Sprint Planning" value={bookingForm.title} onChange={(e) => setBookingForm({ ...bookingForm, title: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none" />
+            <input id="book-title" type="text" placeholder="e.g. Q3 Sprint Planning" value={bookingForm.title} onChange={(e) => setBookingForm({ ...bookingForm, title: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none" required />
           </div>
           <div>
             <label className="block text-label-md mb-1" htmlFor="book-time">Time Range</label>
+<<<<<<< HEAD
             <select id="book-time" value={bookingForm.timeRange} onChange={(e) => setBookingForm({ ...bookingForm, timeRange: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none">
               {Array.from({ length: 24 }).map((_, idx) => {
                 const hour = idx;
@@ -335,6 +504,17 @@ export default function BookingPage() {
               <option value="Procurement">Procurement</option>
               <option value="IT">IT Infrastructure</option>
               <option value="HR">Human Resources</option>
+=======
+            <select id="book-time" value={bookingForm.timeRange} onChange={(e) => setBookingForm({ ...bookingForm, timeRange: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md">
+              <option value="09:00 - 10:00">9:00 AM - 10:00 AM</option>
+              <option value="10:00 - 11:00">10:00 AM - 11:00 AM</option>
+              <option value="11:00 - 12:00">11:00 AM - 12:00 PM</option>
+              <option value="12:00 - 13:00">12:00 PM - 1:00 PM</option>
+              <option value="13:00 - 14:00">1:00 PM - 2:00 PM</option>
+              <option value="14:00 - 15:00">2:00 PM - 3:00 PM</option>
+              <option value="15:00 - 16:00">3:00 PM - 4:00 PM</option>
+              <option value="16:00 - 17:00">4:00 PM - 5:00 PM</option>
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
             </select>
           </div>
           <div className="flex justify-end gap-3 pt-4">

@@ -6,7 +6,10 @@ import Modal from "@/components/Modal";
 import { useApiError } from "@/hooks/useApiError";
 import { reportService } from "@/services/report.service";
 import { activityService } from "@/services/activity.service";
+import { assetService } from "@/services/asset.service";
 import type { ActivityLog } from "@/types/activity";
+import type { Asset, AssetCategory } from "@/types/asset";
+import { formatActivitySubtitle, formatActivityTitle } from "@/lib/activity";
 import { AlertTriangle, Plus, Calendar, Headphones, Monitor, DoorOpen, Wrench, ArmchairIcon, Info, Package } from "lucide-react";
 
 const iconMap: Record<string, typeof Monitor> = {
@@ -39,6 +42,26 @@ interface KpiData {
   overdueReturns: number;
 }
 
+function mapActivityLog(log: ActivityLog): ActivityItem {
+  const action = log.action?.toLowerCase() || "";
+  return {
+    icon: action.includes("alloc") ? "computer"
+      : action.includes("book") ? "meeting_room"
+      : action.includes("maintenance") ? "build"
+      : action.includes("return") ? "chair" : "info",
+    iconBg: action.includes("alloc") ? "bg-[#EEF2FF] text-[#4F46E5]"
+      : action.includes("book") ? "bg-[#F0F9FF] text-[#0284C7]"
+      : action.includes("maintenance") ? "bg-[#F0FDF4] text-[#16A34A]"
+      : action.includes("return") ? "bg-[#EEF2FF] text-[#4F46E5]"
+      : "bg-[#F1F5F9] text-[#475569]",
+    title: formatActivityTitle(log),
+    desc: log.displayText || formatActivitySubtitle(log) || "System activity recorded",
+    time: log.createdAt
+      ? new Date(log.createdAt).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, month: "short", day: "numeric" })
+      : "Recently",
+  };
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { showToast, handleError } = useApiError();
@@ -46,71 +69,51 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [kpi, setKpi] = useState<KpiData | null>(null);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
+  const [categories, setCategories] = useState<AssetCategory[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [newAsset, setNewAsset] = useState({
     name: "",
-    category: "Electronics",
-    location: "Bengaluru, BLR-01",
-    tag: "AF-0250",
+    categoryId: 1,
+    location: "",
   });
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [kpiData, logs] = await Promise.all([
+        const [kpiData, logs, cats, assets] = await Promise.all([
           reportService.kpi(),
           activityService.logs(),
+          assetService.categories(),
+          assetService.list(),
         ]);
         setKpi(kpiData);
-
-        const mapped = (logs || []).slice(0, 5).map((log: ActivityLog) => ({
-          icon: log.action?.toLowerCase().includes("alloc") ? "computer" :
-                log.action?.toLowerCase().includes("book") ? "meeting_room" :
-                log.action?.toLowerCase().includes("maintenance") ? "build" :
-                log.action?.toLowerCase().includes("return") ? "chair" : "info",
-          iconBg: log.action?.toLowerCase().includes("alloc") ? "bg-[#EEF2FF] text-[#4F46E5]" :
-                  log.action?.toLowerCase().includes("book") ? "bg-[#F0F9FF] text-[#0284C7]" :
-                  log.action?.toLowerCase().includes("maintenance") ? "bg-[#F0FDF4] text-[#16A34A]" :
-                  log.action?.toLowerCase().includes("return") ? "bg-[#EEF2FF] text-[#4F46E5]" :
-                  "bg-[#F1F5F9] text-[#475569]",
-          title: `${log.action || "Activity"} #${log.id}`,
-          desc: typeof log.details === 'string'
-            ? log.details
-            : log.details
-              ? JSON.stringify(log.details)
-              : `${log.entityType || "Entity"} updated`,
-          time: log.createdAt ? new Date(log.createdAt).toLocaleDateString() : "Recently",
-        }));
-
-        if (mapped.length === 0) {
-          setRecentActivities([
-            { icon: "computer", iconBg: "bg-[#EEF2FF] text-[#4F46E5]", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
-            { icon: "meeting_room", iconBg: "bg-[#F0F9FF] text-[#0284C7]", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
-          ]);
-        } else {
-          setRecentActivities(mapped);
+        setCategories(cats || []);
+        const locs = Array.from(new Set((assets || []).map((a: Asset) => a.location).filter(Boolean) as string[]));
+        setLocations(locs);
+        if (cats?.length) {
+          setNewAsset((prev) => ({ ...prev, categoryId: cats[0].id, location: locs[0] || "" }));
         }
+
+        setRecentActivities((logs || []).slice(0, 5).map(mapActivityLog));
       } catch (err) {
         handleError(err, "Could not load dashboard data");
-        setKpi({ availableAssets: 128, allocatedAssets: 76, activeBookings: 9, pendingTransfers: 3, overdueReturns: 2 });
-        setRecentActivities([
-          { icon: "computer", iconBg: "bg-[#EEF2FF] text-[#4F46E5]", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
-          { icon: "meeting_room", iconBg: "bg-[#F0F9FF] text-[#0284C7]", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
-        ]);
       } finally {
         setLoading(false);
       }
     }
     fetchData();
-  }, []);
+  }, [handleError]);
 
-  const handleRegisterAsset = (e: React.FormEvent) => {
+  const handleRegisterAsset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAsset.name) {
+    if (!newAsset.name.trim()) {
       showToast("Please enter an asset name", "error");
       return;
     }
+<<<<<<< HEAD
     setRecentActivities((prev) => [
       {
         icon: "inventory_2",
@@ -129,6 +132,33 @@ export default function DashboardPage() {
       location: "Bengaluru, BLR-01",
       tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
     });
+=======
+    setRegistering(true);
+    try {
+      const created = await assetService.create({
+        name: newAsset.name.trim(),
+        categoryId: newAsset.categoryId,
+        location: newAsset.location || undefined,
+      });
+      const [logs, kpiData] = await Promise.all([
+        activityService.logs(),
+        reportService.kpi(),
+      ]);
+      setKpi(kpiData);
+      setRecentActivities((logs || []).slice(0, 5).map(mapActivityLog));
+      showToast(`Successfully registered ${created.name} (${created.assetTag})!`, "success");
+      setIsRegisterOpen(false);
+      setNewAsset({
+        name: "",
+        categoryId: categories[0]?.id ?? 1,
+        location: locations[0] || "",
+      });
+    } catch (err) {
+      handleError(err, "Failed to register asset");
+    } finally {
+      setRegistering(false);
+    }
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
   };
 
   if (loading) {
@@ -219,18 +249,19 @@ export default function DashboardPage() {
           {recentActivities.slice(0, 5).map((item, i) => (
             <div
               key={i}
-              onClick={() => showToast(`Activity details: ${item.title} - ${item.desc}`, "info")}
+              onClick={() => showToast(item.desc, "info")}
               className="px-6 py-4 flex items-start gap-4 hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
             >
               <div className={`w-8 h-8 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
                 <DynamicIcon name={item.icon} size={16} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start mb-0.5">
-                  <span className="text-[14px] text-[#0F172A] font-semibold truncate">{item.title}</span>
-                  <span className="text-[11px] text-[#94A3B8] font-mono shrink-0 ml-3">{item.time}</span>
+                <div className="flex justify-between items-start mb-0.5 gap-3">
+                  <p className="text-[14px] text-[#0F172A] leading-relaxed">
+                    {item.desc}
+                  </p>
+                  <span className="text-[11px] text-[#94A3B8] font-mono shrink-0">{item.time}</span>
                 </div>
-                <p className="text-[13px] text-[#475569] leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -247,30 +278,32 @@ export default function DashboardPage() {
       >
         <form onSubmit={handleRegisterAsset} className="space-y-4">
           <div>
-            <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-tag">Asset Tag ID</label>
-            <input id="asset-tag" type="text" value={newAsset.tag} onChange={(e) => setNewAsset({ ...newAsset, tag: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] font-mono focus:border-[#2563EB] outline-none" />
-          </div>
-          <div>
             <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-name">Equipment Name</label>
-            <input id="asset-name" type="text" placeholder="e.g. MacBook Pro M3 16-inch" value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none" />
+            <input id="asset-name" type="text" placeholder="e.g. MacBook Pro M3 16-inch" value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-category">Category</label>
-              <select id="asset-category" value={newAsset.category} onChange={(e) => setNewAsset({ ...newAsset, category: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none">
-                <option>Electronics</option><option>Furniture</option><option>Networking</option><option>Vehicles</option>
+              <select id="asset-category" value={newAsset.categoryId} onChange={(e) => setNewAsset({ ...newAsset, categoryId: parseInt(e.target.value) })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none">
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
               </select>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-[#0F172A] mb-1" htmlFor="asset-location">Location</label>
               <select id="asset-location" value={newAsset.location} onChange={(e) => setNewAsset({ ...newAsset, location: e.target.value })} className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-[14px] focus:border-[#2563EB] outline-none">
-                <option>Bengaluru, BLR-01</option><option>Mumbai, Server Rm 1</option><option>HQ, Floor 2</option><option>Warehouse A</option>
+                {locations.map((loc) => (
+                  <option key={loc} value={loc}>{loc}</option>
+                ))}
               </select>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <button type="button" onClick={() => setIsRegisterOpen(false)} className="px-4 py-2 rounded-lg text-[13px] font-medium border border-[#E2E8F0] hover:bg-[#F8FAFC]">Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded-lg text-[13px] font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8]">Register Asset</button>
+            <button type="submit" disabled={registering} className="px-4 py-2 rounded-lg text-[13px] font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8] disabled:opacity-50">
+              {registering ? "Registering..." : "Register Asset"}
+            </button>
           </div>
         </form>
       </Modal>

@@ -13,10 +13,29 @@ interface AssetItem {
   name: string;
   icon: string;
   category: string;
+  categoryId: number | null;
   status: string;
   statusColor: string;
   location: string;
   faded: boolean;
+}
+
+const PAGE_SIZE = 10;
+
+function mapAsset(a: Asset, categoryMap: Map<number, string>): AssetItem {
+  const categoryId = a.categoryId != null ? Number(a.categoryId) : null;
+  return {
+    id: a.id,
+    tag: a.assetTag || "",
+    name: a.name || "",
+    icon: "inventory_2",
+    category: (categoryId != null ? categoryMap.get(categoryId) : null) || a.categoryName || "General",
+    categoryId,
+    status: a.status || "available",
+    statusColor: statusToColor[a.status] || "success",
+    location: a.location || "",
+    faded: ["retired", "lost", "disposed"].includes(a.status),
+  };
 }
 
 const statusToColor: Record<string, string> = {
@@ -34,6 +53,8 @@ export default function AssetsPage() {
 
   const [assets, setAssets] = useState<AssetItem[]>([]);
   const [categories, setCategories] = useState<string[]>(["All"]);
+  const [categoryMap, setCategoryMap] = useState<Map<number, string>>(new Map());
+  const [locations, setLocations] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,9 +66,8 @@ export default function AssetsPage() {
 
   const [newAsset, setNewAsset] = useState(() => ({
     name: "",
-    category: "Electronics",
-    location: "Bengaluru, BLR-01",
-    tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
+    category: "",
+    location: "",
   }));
 
   useEffect(() => {
@@ -58,6 +78,7 @@ export default function AssetsPage() {
           assetService.categories(),
         ]);
 
+<<<<<<< HEAD
         const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
           id: a.id,
           tag: a.tag || a.assetTag || "",
@@ -69,9 +90,26 @@ export default function AssetsPage() {
           location: a.location || "",
           faded: ["retired", "lost", "disposed"].includes(a.status),
         }));
+=======
+        const catMap = new Map<number, string>(
+          (cats || []).map((c: AssetCategory) => [Number(c.id), c.name])
+        );
+        setCategoryMap(catMap);
+
+        const mapped: AssetItem[] = (items || []).map((a: Asset) => mapAsset(a, catMap));
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
 
         setAssets(mapped);
-        setCategories(["All", ...new Set((cats || []).map((c: AssetCategory) => c.name))]);
+        setCategories(["All", ...Array.from(new Set((cats || []).map((c: AssetCategory) => c.name)))]);
+        const locs = Array.from(new Set((items || []).map((a: Asset) => a.location).filter(Boolean) as string[]));
+        setLocations(locs);
+        if (cats?.length && !newAsset.category) {
+          setNewAsset((prev) => ({
+            ...prev,
+            category: cats[0].name,
+            location: locs[0] || "",
+          }));
+        }
       } catch (err) {
         handleError(err, "Could not load assets from server");
       } finally {
@@ -79,7 +117,11 @@ export default function AssetsPage() {
       }
     }
     fetchData();
-  }, [showToast]);
+  }, [handleError]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, selectedStatus]);
 
   const statusClasses: Record<string, string> = {
     info: "bg-info/10 text-info ring-1 ring-inset ring-info/20",
@@ -90,10 +132,12 @@ export default function AssetsPage() {
 
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
+      const q = searchQuery.toLowerCase();
       const matchesSearch =
-        asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        asset.tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        asset.location.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        asset.name.toLowerCase().includes(q) ||
+        asset.tag.toLowerCase().includes(q) ||
+        asset.location.toLowerCase().includes(q);
 
       const matchesCategory =
         selectedCategory === "All" || asset.category === selectedCategory;
@@ -105,6 +149,12 @@ export default function AssetsPage() {
     });
   }, [assets, searchQuery, selectedCategory, selectedStatus]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredAssets.length / PAGE_SIZE));
+  const pagedAssets = filteredAssets.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   const handleRegisterAsset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAsset.name) {
@@ -112,11 +162,14 @@ export default function AssetsPage() {
       return;
     }
     try {
+      const categoryId =
+        Array.from(categoryMap.entries()).find(([, name]) => name === newAsset.category)?.[0] ?? 1;
       await assetService.create({
         name: newAsset.name,
-        categoryId: categories.indexOf(newAsset.category) + 1 || 1,
+        categoryId,
         location: newAsset.location,
       });
+<<<<<<< HEAD
       const items = await assetService.list();
       const mapped: AssetItem[] = (items || []).map((a: Asset) => ({
         id: a.id,
@@ -130,11 +183,23 @@ export default function AssetsPage() {
         faded: ["retired", "lost", "disposed"].includes(a.status),
       }));
       setAssets(mapped);
+=======
+      const [items, cats] = await Promise.all([
+        assetService.list(),
+        assetService.categories(),
+      ]);
+      const catMap = new Map<number, string>(
+        (cats || []).map((c: AssetCategory) => [Number(c.id), c.name])
+      );
+      setCategoryMap(catMap);
+      setAssets((items || []).map((a: Asset) => mapAsset(a, catMap)));
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
       showToast(`Asset ${newAsset.name} added successfully!`, "success");
       setIsRegisterOpen(false);
       setNewAsset({
-        name: "", category: "Electronics", location: "Bengaluru, BLR-01",
-        tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: "",
+        category: categories.find((c) => c !== "All") || "",
+        location: locations[0] || "",
       });
     } catch (err) {
       handleError(err, "Failed to register asset");
@@ -236,7 +301,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-in" onClick={() => setActiveDropdown(null)}>
+    <div className="flex-1 flex flex-col min-h-0 animate-fade-in" onClick={() => setActiveDropdown(null)}>
       <header className="bg-surface-container-lowest border-b border-border-subtle px-container py-comfortable shrink-0 z-10 flex flex-col md:flex-row md:items-center justify-between gap-comfortable shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
         <div>
           <h1 className="text-headline-lg text-text-primary tracking-tight">Asset Directory</h1>
@@ -276,7 +341,7 @@ export default function AssetsPage() {
         </div>
       </header>
 
-      <div className="bg-surface-container-lowest border-b border-border-subtle px-container py-standard shrink-0 flex gap-standard overflow-x-auto items-center">
+      <div className="bg-surface-container-lowest border-b border-border-subtle px-container py-standard shrink-0 flex gap-standard overflow-x-auto items-center relative z-40">
         <span className="text-label-md text-text-secondary shrink-0 uppercase tracking-widest">Filters</span>
         <div className="h-4 w-px bg-border-subtle mx-1 shrink-0" />
 
@@ -291,7 +356,7 @@ export default function AssetsPage() {
             <ChevronDown size={16} className="text-text-secondary" />
           </button>
           {activeDropdown === "Category" && (
-            <div className="absolute top-full left-0 mt-1.5 w-44 bg-surface-container-lowest border border-border-subtle rounded-lg shadow-lg z-30 py-1">
+            <div className="absolute top-full left-0 mt-1.5 w-44 bg-surface-container-lowest border border-border-subtle rounded-lg shadow-lg z-50 py-1 max-h-60 overflow-y-auto">
               {categories.map((cat) => (
                 <button
                   key={cat}
@@ -316,7 +381,7 @@ export default function AssetsPage() {
             <ChevronDown size={16} className="text-text-secondary" />
           </button>
           {activeDropdown === "Status" && (
-            <div className="absolute top-full left-0 mt-1.5 w-44 bg-surface-container-lowest border border-border-subtle rounded-lg shadow-lg z-30 py-1">
+            <div className="absolute top-full left-0 mt-1.5 w-44 bg-surface-container-lowest border border-border-subtle rounded-lg shadow-lg z-50 py-1 max-h-60 overflow-y-auto">
               {["All", "available", "allocated", "under_maintenance", "retired", "lost"].map((st) => (
                 <button
                   key={st}
@@ -341,7 +406,7 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      <div className="flex-1 p-container overflow-hidden flex flex-col">
+      <div className="flex-1 p-container overflow-visible flex flex-col min-h-0">
         <div className="bg-surface-container-lowest border border-border-subtle rounded-lg flex-1 flex flex-col overflow-hidden shadow-sm">
           <div className="grid grid-cols-12 gap-4 px-comfortable py-standard bg-surface-container-low border-b border-border-subtle text-label-md text-text-secondary uppercase tracking-wider shrink-0">
             <div className="col-span-2 flex items-center gap-2">Tag ID<ArrowDown size={14} className="cursor-pointer hover:text-primary" /></div>
@@ -355,7 +420,7 @@ export default function AssetsPage() {
             {filteredAssets.length === 0 ? (
               <div className="p-8 text-center text-text-secondary">No assets found matching current search and filters.</div>
             ) : (
-              filteredAssets.map((asset) => (
+              pagedAssets.map((asset) => (
                 <div
                   key={asset.id}
                   onClick={() => showToast(`Selected asset: ${asset.name} (${asset.tag})`, "info")}
@@ -387,8 +452,8 @@ export default function AssetsPage() {
               <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} className="p-1 rounded text-text-secondary hover:bg-surface-container hover:text-primary disabled:opacity-50 transition-colors" disabled={currentPage === 1}>
                 <ChevronLeft size={20} />
               </button>
-              <span className="text-label-md text-text-primary px-2">Page {currentPage} of {Math.max(1, Math.ceil(filteredAssets.length / 10))}</span>
-              <button onClick={() => setCurrentPage((p) => p + 1)} className="p-1 rounded text-text-secondary hover:bg-surface-container hover:text-primary disabled:opacity-50 transition-colors" disabled={currentPage >= Math.ceil(filteredAssets.length / 10) || filteredAssets.length === 0}>
+              <span className="text-label-md text-text-primary px-2">Page {currentPage} of {totalPages}</span>
+              <button onClick={() => setCurrentPage((p) => p + 1)} className="p-1 rounded text-text-secondary hover:bg-surface-container hover:text-primary disabled:opacity-50 transition-colors" disabled={currentPage >= totalPages || filteredAssets.length === 0}>
                 <ChevronRight size={20} />
               </button>
             </div>
@@ -399,27 +464,20 @@ export default function AssetsPage() {
       <Modal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} title="Register New Enterprise Asset">
         <form onSubmit={handleRegisterAsset} className="space-y-4">
           <div>
-            <label className="block text-label-md mb-1" htmlFor="asset-tag">Asset Tag ID</label>
-            <input id="asset-tag" type="text" value={newAsset.tag} onChange={(e) => setNewAsset({ ...newAsset, tag: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md font-mono" />
-          </div>
-          <div>
             <label className="block text-label-md mb-1" htmlFor="asset-name">Equipment Name</label>
-            <input id="asset-name" type="text" placeholder="e.g. MacBook Pro M3 16-inch" value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none" />
+            <input id="asset-name" type="text" placeholder="e.g. MacBook Pro M3 16-inch" value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-label-md mb-1" htmlFor="asset-category">Category</label>
               <select id="asset-category" value={newAsset.category} onChange={(e) => setNewAsset({ ...newAsset, category: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none">
-                {categories.filter(c => c !== "All").map(c => <option key={c} value={c}>{c}</option>)}
+                {categories.filter((c) => c !== "All").map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-label-md mb-1" htmlFor="asset-location">Location</label>
               <select id="asset-location" value={newAsset.location} onChange={(e) => setNewAsset({ ...newAsset, location: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none">
-                <option value="Bengaluru, BLR-01">Bengaluru, BLR-01</option>
-                <option value="Mumbai, Server Rm 1">Mumbai, Server Rm 1</option>
-                <option value="HQ, Floor 2">HQ, Floor 2</option>
-                <option value="Warehouse A">Warehouse A</option>
+                {locations.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
               </select>
             </div>
           </div>

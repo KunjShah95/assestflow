@@ -2,9 +2,8 @@ export interface ActivityLog {
   id: number;
   employeeId: number;
   action: string;
-  entityType: string;
-  entityId: number;
-  details: string | null;
+  details: Record<string, unknown> | string | null;
+  displayText?: string;
   createdAt: string;
 }
 

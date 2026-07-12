@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useApiError } from "@/hooks/useApiError";
 import { activityService } from "@/services/activity.service";
 import type { ActivityLog } from "@/types/activity";
+import { formatActivitySubtitle, formatActivityTitle } from "@/lib/activity";
 import { Search, Laptop, ArrowLeftRight, Wrench, ShieldCheck, Calendar, Verified, UserPlus, Settings, PlusCircle, Info, History } from "lucide-react";
 
 interface LogEntry {
@@ -77,22 +78,21 @@ export default function ActivityPage() {
             category: matched.category,
             icon: matched.icon,
             iconColor: matched.iconColor,
+<<<<<<< HEAD
             title: `${log.action || "Activity"} - ${log.entityType || ""} #${log.entityId || log.id}`,
             desc: log.details ? (typeof log.details === "string" ? log.details : JSON.stringify(log.details)) : "",
+=======
+            title: log.displayText || formatActivityTitle(log),
+            desc: log.displayText ? "" : formatActivitySubtitle(log),
+>>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
             time: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Recently",
             user: `User #${log.employeeId}`,
           };
         });
-        setLogs(mapped.length > 0 ? mapped : [
-          { id: "log-1", category: "Allocation", icon: "laptop_mac", iconColor: "bg-primary/10 text-primary", title: "Asset AF-0114 Allocated", desc: "Assigned to Priya Shah", time: "10:42 AM", user: "Admin: R. Nair" },
-          { id: "log-2", category: "Maintenance", icon: "build", iconColor: "bg-warning/10 text-warning", title: "Maintenance Ticket AF-0062 Flagged", desc: "Projector 4K bulb issue", time: "09:15 AM", user: "System" },
-        ]);
+        setLogs(mapped.length > 0 ? mapped : []);
       } catch (err) {
         handleError(err, "Failed to load activity logs");
-        setLogs([
-          { id: "log-1", category: "Allocation", icon: "laptop_mac", iconColor: "bg-primary/10 text-primary", title: "Asset AF-0114 Allocated", desc: "Assigned to Priya Shah", time: "10:42 AM", user: "Admin: R. Nair" },
-          { id: "log-2", category: "Maintenance", icon: "build", iconColor: "bg-warning/10 text-warning", title: "Maintenance Ticket AF-0062 Flagged", desc: "Projector 4K bulb issue", time: "09:15 AM", user: "System" },
-        ]);
+        setLogs([]);
       } finally {
         setLoading(false);
       }
