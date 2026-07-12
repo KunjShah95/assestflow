@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/ToastProvider";
 import { departmentService } from "@/services/department.service";
+import { Search, Download, Plus, FolderTree, Edit2, Shield, MapPin, Users, Settings } from "lucide-react";
 
 interface Department {
+  id: number;
   name: string;
   head: string;
   parent: string;
@@ -28,7 +30,8 @@ export default function OrganizationSetupPage() {
     async function fetchData() {
       try {
         const depts = await departmentService.list();
-        const mapped: Department[] = (depts || []).map((d: any) => ({
+        const mapped: Department[] = (depts || []).map((d: any, index: number) => ({
+          id: d.id || index,
           name: d.name || "",
           head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
           parent: d.parentDepartmentId ? `Dept #${d.parentDepartmentId}` : "--",
@@ -36,13 +39,13 @@ export default function OrganizationSetupPage() {
           isChild: !!d.parentDepartmentId,
         }));
         setDepartments(mapped.length > 0 ? mapped : [
-          { name: "Engineering", head: "Aditi Rao", parent: "--", status: "Active", isChild: false },
-          { name: "Facilities", head: "Rohan Mehta", parent: "--", status: "Active", isChild: false },
+          { id: 1, name: "Engineering", head: "Aditi Rao", parent: "--", status: "Active", isChild: false },
+          { id: 2, name: "Facilities", head: "Rohan Mehta", parent: "--", status: "Active", isChild: false },
         ]);
       } catch {
         setDepartments([
-          { name: "Engineering", head: "Aditi Rao", parent: "--", status: "Active", isChild: false },
-          { name: "Facilities", head: "Rohan Mehta", parent: "--", status: "Active", isChild: false },
+          { id: 1, name: "Engineering", head: "Aditi Rao", parent: "--", status: "Active", isChild: false },
+          { id: 2, name: "Facilities", head: "Rohan Mehta", parent: "--", status: "Active", isChild: false },
         ]);
       } finally {
         setLoading(false);
@@ -67,12 +70,15 @@ export default function OrganizationSetupPage() {
       showToast(`Added department: ${newDept.name}`, "success");
       setIsAddModalOpen(false);
       setNewDept({ name: "", head: "", parent: "--", status: "Active" });
-      // Reload
+      
       const depts = await departmentService.list();
-      const mapped: Department[] = (depts || []).map((d: any) => ({
-        name: d.name || "", head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
+      const mapped: Department[] = (depts || []).map((d: any, index: number) => ({
+        id: d.id || index,
+        name: d.name || "", 
+        head: d.headEmployeeId ? `Emp #${d.headEmployeeId}` : "TBD",
         parent: d.parentDepartmentId ? `Dept #${d.parentDepartmentId}` : "--",
-        status: d.status === "active" ? "Active" : "Inactive", isChild: !!d.parentDepartmentId,
+        status: d.status === "active" ? "Active" : "Inactive", 
+        isChild: !!d.parentDepartmentId,
       }));
       setDepartments(mapped);
     } catch (err) {
@@ -81,77 +87,136 @@ export default function OrganizationSetupPage() {
   };
 
   if (loading) {
-    return <div className="flex-1 flex items-center justify-center min-h-[60vh]"><div className="text-text-secondary animate-pulse font-medium">Loading organization data...</div></div>;
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="text-[#475569] animate-pulse font-medium text-[14px]">Loading organization data...</div>
+      </div>
+    );
   }
 
-  return (
-    <div className="flex-1 overflow-y-auto p-container animate-fade-in">
-      <div className="mb-container">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-comfortable mb-standard">
-          <div>
-            <h2 className="text-headline-lg text-text-primary">Organization Setup</h2>
-            <p className="text-body-md text-text-secondary mt-1">Manage structural hierarchies and foundational data.</p>
-          </div>
-          <div className="flex items-center gap-standard">
-            <button onClick={() => showToast("Exporting Organization Hierarchy data...", "info")}
-              className="bg-surface-container-lowest border border-border-subtle text-text-primary px-4 py-2 rounded-md text-label-md hover:bg-surface-container-low transition-colors flex items-center gap-2 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>Export
-            </button>
-            <button onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary text-on-primary px-4 py-2 rounded-md text-label-md hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm font-medium">
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>Add Department
-            </button>
-          </div>
-        </div>
+  const tabs = [
+    { name: "Departments", icon: FolderTree },
+    { name: "Categories", icon: Settings },
+    { name: "Employees", icon: Users },
+    { name: "Locations", icon: MapPin },
+    { name: "Policies", icon: Shield },
+  ];
 
-        <div className="border-b border-border-subtle flex gap-comfortable overflow-x-auto">
-          {["Departments", "Categories", "Employees", "Locations"].map((tab) => (
-            <button key={tab} onClick={() => { setActiveTab(tab); showToast(`Switched view to ${tab}`, "info"); }}
-              className={`pb-2 border-b-2 text-label-md px-2 whitespace-nowrap transition-colors ${activeTab === tab ? "border-primary text-primary font-bold" : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-subtle"}`}>
-              {tab}
-            </button>
-          ))}
+  return (
+    <div className="flex-1 overflow-y-auto p-8 animate-fade-in max-w-[1320px] mx-auto pb-24">
+      
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-[28px] font-bold text-[#0F172A]">Organization Setup</h2>
+          <p className="text-[14px] text-[#475569] mt-1">
+            Manage structural hierarchies, asset categories, and foundational enterprise data.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => showToast("Exporting Organization Hierarchy data...", "info")}
+            className="bg-white border border-[#E2E8F0] text-[#0F172A] px-4 py-2.5 rounded-[8px] text-[13px] font-bold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <Download size={16} /> Export
+          </button>
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-[#0052CC] text-white px-5 py-2.5 rounded-[8px] text-[13px] hover:bg-[#0047B3] transition-colors flex items-center gap-2 shadow-sm font-bold"
+          >
+            <Plus size={16} /> Add Department
+          </button>
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="border-b border-[#E2E8F0] flex gap-2 overflow-x-auto mb-8">
+        {tabs.map((tab) => {
+          const IconComp = tab.icon;
+          return (
+            <button 
+              key={tab.name} 
+              onClick={() => { setActiveTab(tab.name); showToast(`Switched view to ${tab.name}`, "info"); }}
+              className={`pb-3 px-4 flex items-center gap-2 whitespace-nowrap transition-all border-b-2 ${
+                activeTab === tab.name 
+                  ? "border-[#0052CC] text-[#0052CC] font-bold" 
+                  : "border-transparent text-[#64748B] font-semibold hover:text-[#0F172A] hover:border-[#CBD5E1]"
+              }`}
+            >
+              <IconComp size={16} />
+              <span className="text-[13px] uppercase tracking-wide">{tab.name}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
       {activeTab === "Departments" ? (
-        <div className="bg-surface-container-lowest rounded-lg border border-border-subtle shadow-sm overflow-hidden flex flex-col">
-          <div className="p-standard border-b border-border-subtle flex flex-col sm:flex-row gap-standard justify-between items-center bg-surface-bright">
-            <div className="relative w-full sm:w-72">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">search</span>
-              <input className="w-full pl-9 pr-3 py-2 border border-border-subtle rounded-md text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-shadow bg-surface-container-lowest" placeholder="Search departments..." type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        <div className="bg-white rounded-[12px] border border-[#E2E8F0] shadow-sm overflow-hidden flex flex-col">
+          
+          {/* Search Bar */}
+          <div className="p-5 border-b border-[#E2E8F0] flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#F8FAFC]">
+            <div className="relative w-full sm:w-[320px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" size={16} />
+              <input 
+                className="w-full pl-9 pr-3 py-2 border border-[#E2E8F0] rounded-[6px] text-[13px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-shadow bg-white shadow-xs" 
+                placeholder="Search departments..." 
+                type="text" 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+              />
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr className="border-b border-border-subtle bg-surface-container-low">
-                  <th className="py-3 px-standard text-label-md text-text-secondary uppercase tracking-wider font-semibold">Department</th>
-                  <th className="py-3 px-standard text-label-md text-text-secondary uppercase tracking-wider font-semibold">Head</th>
-                  <th className="py-3 px-standard text-label-md text-text-secondary uppercase tracking-wider font-semibold">Parent Dept</th>
-                  <th className="py-3 px-standard text-label-md text-text-secondary uppercase tracking-wider font-semibold">Status</th>
-                  <th className="py-3 px-standard text-label-md text-text-secondary uppercase tracking-wider font-semibold text-right">Actions</th>
+                <tr className="border-b border-[#E2E8F0] bg-[#F1F5F9]">
+                  <th className="py-3 px-6 text-[12px] text-[#475569] uppercase tracking-wider font-bold">Department</th>
+                  <th className="py-3 px-6 text-[12px] text-[#475569] uppercase tracking-wider font-bold">Head of Dept</th>
+                  <th className="py-3 px-6 text-[12px] text-[#475569] uppercase tracking-wider font-bold">Parent Dept</th>
+                  <th className="py-3 px-6 text-[12px] text-[#475569] uppercase tracking-wider font-bold">Status</th>
+                  <th className="py-3 px-6 text-[12px] text-[#475569] uppercase tracking-wider font-bold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-subtle text-body-sm text-text-primary bg-surface-container-lowest">
+              <tbody className="divide-y divide-[#E2E8F0] bg-white">
                 {filteredDepartments.length === 0 ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-text-secondary">No departments found</td></tr>
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-[#64748B] text-[14px]">
+                      No departments match your search.
+                    </td>
+                  </tr>
                 ) : (
-                  filteredDepartments.map((dept, i) => (
-                    <tr key={i} onClick={() => showToast(`Department details: ${dept.name} (Head: ${dept.head})`, "info")}
-                      className="hover:bg-surface-container-low transition-colors group cursor-pointer">
-                      <td className={`py-3 px-standard font-medium ${dept.isChild ? "pl-comfortable" : ""}`}>
-                        {dept.isChild && <span className="w-4 h-px bg-border-subtle inline-block mr-2" />}{dept.name}
+                  filteredDepartments.map((dept) => (
+                    <tr 
+                      key={dept.id} 
+                      onClick={() => showToast(`Department details: ${dept.name} (Head: ${dept.head})`, "info")}
+                      className="hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
+                    >
+                      <td className={`py-4 px-6 text-[14px] font-bold text-[#0F172A] flex items-center ${dept.isChild ? "pl-12" : ""}`}>
+                        {dept.isChild && <div className="w-4 h-px bg-[#CBD5E1] mr-3 inline-block" />}
+                        {dept.name}
                       </td>
-                      <td className="py-3 px-standard text-text-secondary">{dept.head}</td>
-                      <td className={`py-3 px-standard text-text-secondary ${dept.parent === "--" ? "italic" : ""}`}>{dept.parent}</td>
-                      <td className="py-3 px-standard">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${dept.status === "Active" ? "bg-success/10 text-success border-success/20" : "bg-surface-variant text-text-secondary border-border-subtle"}`}>{dept.status}</span>
+                      <td className="py-4 px-6 text-[14px] text-[#475569] font-medium">{dept.head}</td>
+                      <td className={`py-4 px-6 text-[14px] text-[#475569] ${dept.parent === "--" ? "italic opacity-60" : ""}`}>
+                        {dept.parent}
                       </td>
-                      <td className="py-3 px-standard text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={(e) => { e.stopPropagation(); showToast(`Editing department ${dept.name}`, "info"); }}
-                          className="text-text-secondary hover:text-primary p-1"><span className="material-symbols-outlined text-sm">edit</span></button>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide border ${
+                          dept.status === "Active" 
+                            ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" 
+                            : "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]"
+                        }`}>
+                          {dept.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); showToast(`Editing department ${dept.name}`, "info"); }}
+                          className="text-[#64748B] hover:text-[#0052CC] p-1.5 rounded bg-white border border-transparent hover:border-[#E2E8F0] shadow-sm transition-all"
+                        >
+                          <Edit2 size={14} />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -160,27 +225,52 @@ export default function OrganizationSetupPage() {
             </table>
           </div>
 
-          <div className="p-standard border-t border-border-subtle flex items-center justify-between bg-surface-container-lowest text-text-secondary text-label-md">
+          <div className="p-4 border-t border-[#E2E8F0] flex items-center justify-between bg-white text-[#64748B] text-[12px] font-semibold">
             <div>Showing {filteredDepartments.length} of {departments.length} departments</div>
           </div>
         </div>
       ) : (
-        <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-8 text-center">
-          <span className="material-symbols-outlined text-[48px] text-primary mb-3">folder_managed</span>
-          <h3 className="text-headline-sm text-text-primary mb-1">{activeTab} Management</h3>
-          <p className="text-body-sm text-text-secondary max-w-md mx-auto">Configured hierarchies for {activeTab.toLowerCase()} are synced directly with the Asset Directory and Allocation engine.</p>
+        <div className="bg-white rounded-[12px] border border-[#E2E8F0] p-12 text-center shadow-sm max-w-2xl mx-auto mt-8">
+          <div className="w-20 h-20 bg-[#F1F5F9] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#E2E8F0]">
+            <FolderTree size={32} className="text-[#0052CC]" />
+          </div>
+          <h3 className="text-[20px] font-bold text-[#0F172A] mb-2">{activeTab} Management</h3>
+          <p className="text-[14px] text-[#475569] leading-relaxed">
+            Configured hierarchies for {activeTab.toLowerCase()} are synced directly with the Asset Directory and Allocation engine.
+          </p>
         </div>
       )}
 
-      <p className="mt-comfortable text-text-secondary text-body-sm italic text-center">Editing a department here also drives the picklist in Asset Registrations.</p>
-
-      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Create New Organization Department">
+      {/* Modal */}
+      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Create New Department">
         <form onSubmit={handleAddDepartment} className="space-y-4">
-          <div><label className="block text-label-md mb-1" htmlFor="dept-name">Department Name</label>
-            <input id="dept-name" type="text" placeholder="e.g. AI & Research" value={newDept.name} onChange={(e) => setNewDept({ ...newDept, name: e.target.value })} className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none" /></div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container">Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90 font-medium">Save Department</button>
+          <div>
+            <label className="block text-[13px] font-bold text-[#475569] mb-1" htmlFor="dept-name">
+              Department Name
+            </label>
+            <input 
+              id="dept-name" 
+              type="text" 
+              placeholder="e.g. AI & Research" 
+              value={newDept.name} 
+              onChange={(e) => setNewDept({ ...newDept, name: e.target.value })} 
+              className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:border-[#0052CC] outline-none transition-colors" 
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#E2E8F0] mt-6">
+            <button 
+              type="button" 
+              onClick={() => setIsAddModalOpen(false)} 
+              className="px-4 py-2.5 rounded-[6px] text-[13px] font-bold border border-[#CBD5E1] text-[#475569] hover:bg-[#F1F5F9] transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="px-5 py-2.5 rounded-[6px] text-[13px] bg-[#0052CC] text-white hover:bg-[#0047B3] font-bold shadow-sm transition-colors"
+            >
+              Save Department
+            </button>
           </div>
         </form>
       </Modal>

@@ -1,270 +1,161 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import React, { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Modal from "@/components/Modal";
-import { useToast } from "@/components/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ToastProvider";
 
 export default function LoginPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const { login, signup } = useAuth();
-
+  
   const [email, setEmail] = useState("admin@assetflow.com");
   const [password, setPassword] = useState("password123");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [signupForm, setSignupForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [name, setName] = useState("");
+  const [isSignup, setIsSignup] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!email || !password) {
-      showToast("Please enter email and password", "error");
-      return;
-    }
-    setIsSubmitting(true);
+    setError("");
+    setLoading(true);
+    
+    showToast("Authenticating...", "info");
+
     try {
-      await login(email, password);
-      showToast("Signed in successfully!", "success");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Login failed", "error");
+      if (isSignup) {
+        await signup({ email, password, name });
+        setIsSignup(false);
+        setError("Account created. Login after admin promotes you.");
+      } else {
+        await login(email, password);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
-  };
-
-  const handleResetPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) {
-      showToast("Please enter your email address", "error");
-      return;
-    }
-    showToast(`Password reset link sent to ${resetEmail}`, "success");
-    setIsForgotModalOpen(false);
-    setResetEmail("");
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signupForm.name || !signupForm.email || !signupForm.password) {
-      showToast("Please fill in all required fields", "error");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await signup({ email: signupForm.email, password: signupForm.password, name: signupForm.name });
-      showToast(`Account created for ${signupForm.name}! Welcome aboard.`, "success");
-      setIsSignupModalOpen(false);
-      // Auto-login after signup
-      await login(signupForm.email, signupForm.password);
-      showToast("Signed in successfully!", "success");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Signup failed", "error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  }
 
   return (
-    <div className="bg-surface min-h-screen flex items-center justify-center text-body-md text-text-primary p-4">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-border-subtle rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-container flex flex-col items-center animate-fade-in">
-        {/* Logo */}
-        <div className="mb-8 flex flex-col items-center">
-          <div className="w-16 h-16 bg-surface-container-low rounded-full flex items-center justify-center mb-4 border border-border-subtle">
-            <span className="text-headline-md text-text-primary">AF</span>
-          </div>
-          <h1 className="text-headline-lg font-black text-primary">AssetFlow</h1>
+    <div className="bg-[#F8FAFC] min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-[16px] shadow-sm p-8 flex flex-col items-center animate-fade-in">
+        
+        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+          <span className="text-[18px] font-bold text-[#0F172A]">AF</span>
         </div>
 
-        {/* Form */}
-        <form className="w-full flex flex-col gap-standard" onSubmit={handleLogin}>
-          {/* Email */}
-          <div>
-            <label
-              className="block text-label-md text-text-primary mb-1"
-              htmlFor="email"
-            >
+        <h2 className="text-[24px] font-bold text-[#0052CC] mb-8">
+          AssetFlow
+        </h2>
+
+        <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
+          {isSignup && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[13px] font-bold text-[#475569]" htmlFor="name">
+                Name
+              </label>
+              <input
+                className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] transition-colors"
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Your Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+          )}
+          
+          <div className="flex flex-col gap-1">
+            <label className="text-[13px] font-bold text-[#475569]" htmlFor="email">
               Email
             </label>
             <input
-              className="w-full bg-surface-container-lowest border border-border-subtle rounded text-body-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow"
+              className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] transition-colors"
               id="email"
               name="email"
               type="email"
+              placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
-          {/* Password */}
-          <div>
-            <label
-              className="block text-label-md text-text-primary mb-1"
-              htmlFor="password"
-            >
+          <div className="flex flex-col gap-1">
+            <label className="text-[13px] font-bold text-[#475569]" htmlFor="password">
               Password
             </label>
             <input
-              className="w-full bg-surface-container-lowest border border-border-subtle rounded text-body-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow"
+              className="w-full bg-white border border-[#CBD5E1] rounded-[6px] px-3 py-2 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#0052CC] tracking-[0.2em] transition-colors"
               id="password"
               name="password"
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
-            <div className="flex justify-end mt-1">
-              <button
-                type="button"
-                onClick={() => setIsForgotModalOpen(true)}
-                className="text-label-md text-text-secondary hover:text-primary transition-colors cursor-pointer"
-              >
-                Forgot password
-              </button>
-            </div>
+            {!isSignup && (
+               <div className="text-right mt-0.5">
+                 <a href="#" className="text-[12px] text-[#64748B] hover:text-[#0052CC] font-semibold transition-colors">
+                   Forgot password
+                 </a>
+               </div>
+            )}
           </div>
 
-          {/* Login Button */}
+          {error && (
+            <div className="bg-[#FEF2F2] text-[#DC2626] text-[13px] p-3 rounded-[6px] border border-[#FCA5A5] font-medium mt-2">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-primary hover:bg-surface-tint text-on-primary text-label-md uppercase rounded py-2.5 px-4 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 text-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+            className="w-full bg-[#0052CC] hover:bg-[#0047B3] text-white text-[13px] uppercase tracking-wide rounded-[6px] py-3 mt-1 transition-colors font-bold shadow-sm disabled:opacity-70 cursor-pointer"
           >
-            {isSubmitting ? "Signing in..." : "Sign In"}
+            {loading ? "Please wait..." : isSignup ? "CREATE ACCOUNT" : "SIGN IN"}
           </button>
 
-          {/* Divider & Sign Up */}
-          <div className="mt-4 pt-4 border-t border-border-subtle">
-            <p className="text-label-md text-text-primary mb-2">New here?</p>
-            <div className="bg-surface-container-low p-3 rounded border border-border-subtle mb-4">
-              <p className="text-body-sm text-text-secondary">
+          {!isSignup ? (
+            <div className="mt-4 pt-4 border-t border-[#E2E8F0] w-full flex flex-col text-left">
+              <span className="text-[13px] text-[#0F172A] mb-2 font-bold">New here?</span>
+              <div className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-3 py-2.5 text-[13px] text-[#475569] mb-4">
                 Sign up creates an employee account — admin roles assigned later
-              </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignup(true);
+                  setError("");
+                }}
+                className="w-full bg-[#0052CC] hover:bg-[#0047B3] text-white text-[13px] uppercase tracking-wide rounded-[6px] py-3 transition-colors font-bold shadow-sm cursor-pointer"
+              >
+                CREATE ACCOUNT
+              </button>
             </div>
-            <button
-              onClick={() => setIsSignupModalOpen(true)}
-              className="w-full bg-primary hover:bg-surface-tint text-on-primary text-label-md uppercase rounded py-2 px-4 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-              type="button"
-            >
-              Create Account
-            </button>
-          </div>
+          ) : (
+            <div className="mt-4 pt-4 border-t border-[#E2E8F0] text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignup(false);
+                  setError("");
+                }}
+                className="text-[13px] text-[#0052CC] hover:underline font-bold cursor-pointer"
+              >
+                Already have an account? Sign In
+              </button>
+            </div>
+          )}
         </form>
       </div>
-
-      {/* Forgot Password Modal */}
-      <Modal
-        isOpen={isForgotModalOpen}
-        onClose={() => setIsForgotModalOpen(false)}
-        title="Reset Account Password"
-      >
-        <form onSubmit={handleResetPassword} className="space-y-4">
-          <p className="text-body-sm text-text-secondary">
-            Enter your company email address below. We will send a secure password reset link to your inbox.
-          </p>
-          <div>
-            <label className="block text-label-md mb-1" htmlFor="reset-email">
-              Company Email
-            </label>
-            <input
-              id="reset-email"
-              type="email"
-              placeholder="employee@company.com"
-              value={resetEmail}
-              onChange={(e) => setResetEmail(e.target.value)}
-              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsForgotModalOpen(false)}
-              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90"
-            >
-              Send Reset Link
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Create Account Modal */}
-      <Modal
-        isOpen={isSignupModalOpen}
-        onClose={() => setIsSignupModalOpen(false)}
-        title="Employee Account Registration"
-      >
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-label-md mb-1" htmlFor="signup-name">
-              Full Name
-            </label>
-            <input
-              id="signup-name"
-              type="text"
-              placeholder="e.g. Priya Shah"
-              value={signupForm.name}
-              onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
-              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-label-md mb-1" htmlFor="signup-email">
-              Corporate Email
-            </label>
-            <input
-              id="signup-email"
-              type="email"
-              placeholder="priya.shah@company.com"
-              value={signupForm.email}
-              onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-label-md mb-1" htmlFor="signup-password">
-              Password
-            </label>
-            <input
-              id="signup-password"
-              type="password"
-              placeholder="Min. 6 characters"
-              value={signupForm.password}
-              onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsSignupModalOpen(false)}
-              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? "Creating Account..." : "Complete Registration"}
-            </button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }
