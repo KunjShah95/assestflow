@@ -70,7 +70,11 @@ export default function DashboardPage() {
                   log.action?.toLowerCase().includes("return") ? "bg-[#EEF2FF] text-[#4F46E5]" :
                   "bg-[#F1F5F9] text-[#475569]",
           title: `${log.action || "Activity"} #${log.id}`,
-          desc: log.details || `${log.entityType || "Entity"} updated`,
+          desc: typeof log.details === 'string'
+            ? log.details
+            : log.details
+              ? JSON.stringify(log.details)
+              : `${log.entityType || "Entity"} updated`,
           time: log.createdAt ? new Date(log.createdAt).toLocaleDateString() : "Recently",
         }));
 
