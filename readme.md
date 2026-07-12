@@ -133,7 +133,7 @@ erDiagram
 
 | Table | Key Fields | Purpose |
 |-------|-----------|---------|
-| `departments` | name, parentDeptId, headEmployeeId | Organizational hierarchy |
+| `departments` | name, parentDepartmentId, headEmployeeId | Organizational hierarchy |
 | `employees` | email, passwordHash, role, departmentId | Users with role-based access |
 | `assetCategories` | name, warrantyPeriodDays | Asset classification & warranty tracking |
 | `assets` | name, assetTag, serialNumber, status, location, qrCode, isBookable | Core asset registry with QR codes |
@@ -163,13 +163,13 @@ cp .env.example .env
 # Edit .env with your NeonDB connection string and a JWT secret
 
 # 3. Push schema to database
-npx drizzle-kit push
+npm run db:push              # or: npx drizzle-kit push
 
 # 4. Seed demo data
-node seed.js
+npm run seed                 # or: node seed.js
 
 # 5. Start server
-node src/index.js           # production
+npm start                    # production
 npm run dev                  # development (nodemon)
 ```
 
@@ -179,49 +179,49 @@ npm run dev                  # development (nodemon)
 # 1. Install dependencies
 cd frontend && npm install
 
-# 2. Set up environment
+# 2. Set up environment (optional)
 cp .env.example .env.local
-# NEXT_PUBLIC_API_URL defaults to http://localhost:3001
+# NEXT_PUBLIC_API_URL defaults to http://localhost:3001/api
 
 # 3. Start dev server
 npm run dev                  # Next.js dev server on :3000
-npm run build                # production build (zero errors)
+npm run build                # production build
 ```
 
 ---
 
 ## Test Credentials
 
-After seeding (`node seed.js`), 9 accounts are available:
+After seeding (`npm run seed`), 13 accounts are available. All passwords are `password123`.
 
 ### Admin & Management
 
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@assetflow.com` | `password123` | Admin — full system access |
-| `head@assetflow.com` | `password123` | Department Head — approve requests within dept |
-| `manager@assetflow.com` | `password123` | Asset Manager — manage assets, approve allocations/maintenance |
+| Email | Name | Role | Department |
+|-------|------|------|------------|
+| `admin@assetflow.com` | Admin User | Admin — full system access | Engineering |
+| `head@assetflow.com` | Sarah Chen | Department Head — Engineering | Engineering |
+| `manager@assetflow.com` | Raj Patel | Asset Manager | Engineering |
 
 ### Department Heads
 
-| Email | Password | Department |
-|-------|----------|-----------|
-| `mkt_head@assetflow.com` | `password123` | Marketing |
-| `hr_head@assetflow.com` | `password123` | Human Resources |
-| `fin_head@assetflow.com` | `password123` | Finance |
-| `qa_head@assetflow.com` | `password123` | Quality Assurance |
+| Email | Name | Department |
+|-------|------|-----------|
+| `mkt_head@assetflow.com` | Emily Cooper | Marketing |
+| `hr_head@assetflow.com` | Jane Doe | Human Resources |
+| `fin_head@assetflow.com` | Michael Scott | Finance |
+| `qa_head@assetflow.com` | Dwight Schrute | QA / Testing (child of Engineering) |
 
 ### Employees
 
-| Email | Password | Department |
-|-------|----------|-----------|
-| `emp1@assetflow.com` | `password123` | Engineering |
-| `emp2@assetflow.com` | `password123` | Engineering |
-| `emp3@assetflow.com` | `password123` | Marketing |
-| `emp4@assetflow.com` | `password123` | Human Resources |
-| `emp5@assetflow.com` | `password123` | Finance |
+| Email | Name | Department |
+|-------|------|-----------|
+| `emp1@assetflow.com` | Priya Sharma | Engineering |
+| `emp2@assetflow.com` | Alex Kim | Marketing |
+| `emp3@assetflow.com` | Pam Beesly | Finance |
+| `emp4@assetflow.com` | Jim Halpert | QA / Testing |
+| `emp5@assetflow.com` | Stanley Hudson | Finance |
 
-**JWT Secret:** Auto-generated 512-bit cryptographically secure secret (see `backend/.env`).
+**JWT Secret:** Generate a strong key and set it in `backend/.env` (see `backend/.env.example`).
 
 ---
 
@@ -238,12 +238,22 @@ After seeding (`node seed.js`), 9 accounts are available:
 
 ## API Endpoints
 
+All routes are prefixed with `/api`. Authenticated routes require a `Authorization: Bearer <token>` header.
+
+### Health
+
+```
+GET    /api/health                      Server health check
+```
+
 ### Auth
 
 ```
-POST   /api/auth/signup                Register employee
-POST   /api/auth/login                 Login → JWT token
-GET    /api/auth/me                    Current user profile
+POST   /api/auth/signup                 Register employee (role defaults to employee)
+POST   /api/auth/login                  Login → JWT token
+GET    /api/auth/me                     Current user profile
+PATCH  /api/auth/profile                Update profile
+POST   /api/auth/change-password        Change password
 ```
 
 ### Directory
@@ -257,62 +267,61 @@ POST   /api/categories                  Create category (admin)
 PATCH  /api/categories/:id              Update category (admin)
 GET    /api/employees                   List employees (admin/manager)
 PATCH  /api/employees/:id/role          Promote role (admin)
-PATCH  /api/employees/:id/status        Activate/deactivate (admin)
-GET    /api/assets                      List assets (with search, category, status, location filters)
-POST   /api/assets                      Register asset (asset_manager+)
+PATCH  /api/employees/:id/deactivate    Deactivate employee (admin)
+GET    /api/assets                      List assets (search, category, status, location filters)
 GET    /api/assets/:id                  Asset detail
-PATCH  /api/assets/:id                  Update asset
+POST   /api/assets                      Register asset (asset_manager+)
+PATCH  /api/assets/:id                  Update asset (asset_manager+)
 ```
 
 ### Allocation
 
 ```
-POST   /api/allocations                 Assign asset to employee
-PATCH  /api/allocations/:id/transfer    Request asset transfer
-PATCH  /api/allocations/:id/approve     Approve transfer (admin)
-POST   /api/allocations/:id/return      Return asset
 GET    /api/allocations                 List all allocations
-GET    /api/allocations/mine            My current allocations
+POST   /api/allocations                 Assign asset to employee (manager+)
+POST   /api/allocations/transfer        Request asset transfer
+PATCH  /api/allocations/transfer/:id/approve  Approve transfer (manager+)
+POST   /api/allocations/:id/return      Return asset (manager+)
 ```
 
 ### Booking
 
 ```
+GET    /api/bookings                    List current user's bookings
 POST   /api/bookings                    Book asset (time-slot)
 PATCH  /api/bookings/:id/cancel         Cancel booking
 GET    /api/bookings/calendar/:assetId  Calendar view for asset
-GET    /api/bookings/mine               My bookings
 ```
 
 ### Maintenance
 
 ```
+GET    /api/maintenance                 List requests
 POST   /api/maintenance                 Create maintenance request
 PATCH  /api/maintenance/:id/approve     Approve (manager/admin)
 PATCH  /api/maintenance/:id/reject      Reject (manager/admin)
-PATCH  /api/maintenance/:id/resolve     Mark resolved
-GET    /api/maintenance                 List requests
-GET    /api/maintenance/:id             Request detail
+PATCH  /api/maintenance/:id/resolve     Mark resolved (manager/admin)
+PATCH  /api/maintenance/:id/status      Update status (manager/admin)
 ```
 
 ### Audit
 
 ```
-POST   /api/audits/cycles               Create audit cycle (admin)
-PATCH  /api/audits/cycles/:id/close     Close cycle → auto-flag discrepancies
-GET    /api/audits/cycles               List audit cycles
-GET    /api/audits/cycles/:id/results   Cycle audit results
-POST   /api/audits/results              Mark asset audit result
+GET    /api/audits                      List audit cycles (admin)
+POST   /api/audits                      Create audit cycle (admin)
+POST   /api/audits/:cycleId/mark        Mark asset audit result (manager+)
+PATCH  /api/audits/:id/close            Close cycle → auto-flag discrepancies (admin)
+GET    /api/audits/:id/results          Cycle audit results (manager+)
 ```
 
 ### Reports & Analytics
 
 ```
 GET    /api/reports/kpi                 Mission Control KPIs (dashboard)
-GET    /api/reports/idle-assets         Assets not allocated in 90 days
-GET    /api/reports/utilization         Allocation counts by department
-GET    /api/reports/maintenance-frequency  Maintenance requests by category
-GET    /api/reports/booking-heatmap     Booking density data
+GET    /api/reports/idle-assets         Assets not allocated in 90 days (manager+)
+GET    /api/reports/utilization         Allocation counts by department (manager+)
+GET    /api/reports/maintenance-frequency  Maintenance requests by category (manager+)
+GET    /api/reports/booking-heatmap     Booking density data (manager+)
 ```
 
 ### Policies & Notifications
@@ -320,10 +329,9 @@ GET    /api/reports/booking-heatmap     Booking density data
 ```
 GET    /api/policies                    List policy rules
 POST   /api/policies                    Create policy rule (admin)
-PATCH  /api/policies/:id/toggle         Enable/disable rule
 GET    /api/notifications               My notifications (?unread=true)
 PATCH  /api/notifications/:id/read      Mark as read
-GET    /api/activity-log                System activity audit trail
+GET    /api/notifications/activity-log  System activity audit trail
 ```
 
 ---
@@ -333,17 +341,18 @@ GET    /api/activity-log                System activity audit trail
 ### Route Structure
 
 ```
-/                           → Landing page (marketing site)
-/(dashboard)/dashboard      → Mission Control KPI dashboard
-/(dashboard)/assets         → Asset directory & registration
-/(dashboard)/allocation     → Asset assignment & transfers
-/(dashboard)/booking        → Time-slot reservations
-/(dashboard)/maintenance    → Maintenance request workflow
-/(dashboard)/audit          → Audit cycle management
-/(dashboard)/reports        → Analytics & reports
-/(dashboard)/activity       → Activity log
-/(dashboard)/organization-setup → Departments, categories, employees
-/login                      → Authentication
+/                               → Landing page (public marketing site with product preview)
+/login                          → Authentication
+/(dashboard)/dashboard          → Mission Control KPI dashboard
+/(dashboard)/organization-setup → Departments, categories, employees (admin)
+/(dashboard)/assets             → Asset directory & registration
+/(dashboard)/allocation         → Asset assignment & transfers
+/(dashboard)/booking            → Time-slot reservations
+/(dashboard)/maintenance        → Maintenance request workflow
+/(dashboard)/audit              → Audit cycle management
+/(dashboard)/reports            → Analytics & reports
+/(dashboard)/activity           → Notifications & activity log
+/(dashboard)/settings           → Profile, security, and preferences
 ```
 
 ### Architecture
@@ -354,12 +363,14 @@ pages (App Router) → service layer (API calls) → backend (Express 5)
                TypeScript types ← shared interfaces
 ```
 
-- **Service Layer:** 10 service modules (`src/services/`) — one per domain, all API calls centralized
+- **Service Layer:** 11 service modules (`src/services/`) — one per domain, all API calls centralized
 - **TypeScript Types:** 9 type definition files (`src/types/`) — mirror backend schema
 - **Auth State:** React Context (`AuthContext`) — JWT token management, role-based route protection
-- **Styling:** Tailwind CSS 4 with custom theme (teal primary palette, Inter font)
-- **Components:** Navbar, Sidebar, Modal, ToastProvider + landing page components
-- **Build Status:** Zero errors, zero lint warnings
+- **Styling:** Tailwind CSS 4 via PostCSS with custom theme (teal primary palette, Inter font)
+- **Components:** Navbar, Sidebar, Modal, ToastProvider, ErrorBoundary
+- **Landing Page:** Scroll-animated marketing page with live dashboard screenshot preview
+
+See [frontend/README.md](frontend/README.md) for frontend-specific setup.
 
 ---
 
@@ -373,11 +384,13 @@ assetflow/
 │   │   │   ├── db.js                  ← NeonDB + Drizzle connection
 │   │   │   └── env.js                 ← Environment validation (Zod)
 │   │   ├── models/
-│   │   │   └── schema.ts              ← 14 Drizzle table definitions
+│   │   │   └── schema.js              ← 14 Drizzle table definitions
 │   │   ├── middleware/
 │   │   │   ├── auth.middleware.js      ← JWT verification
 │   │   │   ├── role.middleware.js      ← Role-based access control
-│   │   │   └── validate.middleware.js  ← Zod request validation
+│   │   │   ├── validate.middleware.js  ← Zod request validation
+│   │   │   ├── error.middleware.js     ← Global error handler
+│   │   │   └── notFound.middleware.js  ← 404 handler
 │   │   ├── engines/                   ← 7 business logic engines
 │   │   │   ├── allocation.engine.js   ← Assign & transfer with conflict detection
 │   │   │   ├── booking.engine.js      ← Time-slot reservation with overlap validation
@@ -387,11 +400,11 @@ assetflow/
 │   │   │   ├── intelligence.engine.js ← Decision reasoning & risk scoring
 │   │   │   └── notification.engine.js ← Event-driven alerts & activity logging
 │   │   ├── controllers/               ← 12 thin route controllers
-│   │   ├── routes/                    ← 11 API route definitions
+│   │   ├── routes/                    ← 12 API route modules
 │   │   └── index.js                   ← Express 5 entry point
-│   ├── migrations/                    ← Drizzle Kit generated SQL
 │   ├── drizzle.config.ts
-│   ├── seed.js                        ← Demo data (9 users, 5 depts, 5 categories, 8 assets)
+│   ├── seed.js                        ← Demo data (13 users, 5 depts, 6 categories, 15 assets)
+│   ├── .env.example
 │   └── package.json
 │
 ├── frontend/
@@ -405,22 +418,27 @@ assetflow/
 │   │   │   │   ├── maintenance/       ← Maintenance requests
 │   │   │   │   ├── audit/             ← Audit cycles
 │   │   │   │   ├── reports/           ← Analytics
-│   │   │   │   ├── activity/          ← Activity log
-│   │   │   │   └── organization-setup/ ← Admin config
+│   │   │   │   ├── activity/          ← Notifications & activity log
+│   │   │   │   ├── organization-setup/ ← Admin config
+│   │   │   │   └── settings/          ← Profile & preferences
 │   │   │   ├── login/
-│   │   │   ├── (marketing pages)/     ← Public site (about, pricing, product, etc.)
+│   │   │   ├── page.tsx               ← Public landing page
 │   │   │   ├── layout.tsx
 │   │   │   └── globals.css
 │   │   ├── components/                ← Navbar, Sidebar, Modal, ToastProvider
 │   │   ├── contexts/AuthContext.tsx    ← JWT auth state
-│   │   ├── services/                  ← 10 API service modules
+│   │   ├── services/                  ← 11 API service modules
 │   │   ├── types/                     ← 9 TypeScript type definitions
-│   │   └── lib/                       ← Shared utilities
+│   │   └── lib/                       ← api-client, errors, utilities
+│   ├── public/
+│   │   └── dashboard_preview.png      ← Landing page screenshot
+│   ├── .env.example
 │   ├── next.config.ts
-│   ├── tailwind.config.ts
+│   ├── postcss.config.mjs
 │   └── package.json
 │
-└── README.md
+├── Problem Statement/                 ← Hackathon brief & mockup
+└── readme.md
 ```
 
 ---
