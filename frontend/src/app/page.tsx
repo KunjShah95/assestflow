@@ -80,31 +80,12 @@ export default function LandingPage() {
       {/* Top Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-[#faf8ff]/80 backdrop-blur-md border-b border-[#E2E8F0]">
         <div className="max-w-[1320px] mx-auto px-4 md:px-[64px] flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <Link className="text-[22px] leading-[28px] font-bold text-[#0F172A]" href="/">
-              AssetFlow
-            </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <Link className="text-[#004ac6] font-semibold text-[16px] leading-[24px] hover:text-[#004ac6] transition-colors duration-200" href="/product">
-                Product
-              </Link>
-              <Link className="text-[#475569] text-[16px] leading-[24px] hover:text-[#004ac6] transition-colors duration-200" href="/solutions">
-                Solutions
-              </Link>
-              <Link className="text-[#475569] text-[16px] leading-[24px] hover:text-[#004ac6] transition-colors duration-200" href="/developers">
-                Developers
-              </Link>
-              <Link className="text-[#475569] text-[16px] leading-[24px] hover:text-[#004ac6] transition-colors duration-200" href="/pricing">
-                Pricing
-              </Link>
-            </div>
-          </div>
+          <Link className="text-[22px] leading-[28px] font-bold text-[#0F172A]" href="/">
+            AssetFlow
+          </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="hidden md:block text-[#475569] text-[16px] leading-[24px] font-medium px-4 py-2 hover:text-[#004ac6] transition-colors cursor-pointer">
-              Log In
-            </Link>
-            <Link href="/contact" className="bg-[#004ac6] text-white px-6 py-2.5 rounded-full text-[16px] leading-[24px] font-medium hover:bg-[#1D4ED8] transition-all shadow-sm cursor-pointer">
-              Book Demo
+              Login
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -118,14 +99,7 @@ export default function LandingPage() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-[#E2E8F0] bg-[#faf8ff] px-6 py-4 flex flex-col gap-4 animate-fade-in shadow-lg">
-            <Link className="text-[#475569] text-[16px] py-1" href="/product">Product</Link>
-            <Link className="text-[#475569] text-[16px] py-1" href="/solutions">Solutions</Link>
-            <Link className="text-[#475569] text-[16px] py-1" href="/developers">Developers</Link>
-            <Link className="text-[#475569] text-[16px] py-1" href="/pricing">Pricing</Link>
-            <div className="flex flex-col gap-3 pt-3 border-t border-[#E2E8F0]">
-              <Link href="/login" className="text-[#475569] text-center py-2 hover:text-[#004ac6]">Log In</Link>
-              <Link href="/contact" className="bg-[#004ac6] text-white py-2.5 rounded-full text-center font-medium hover:bg-[#1D4ED8] transition-all">Book Demo</Link>
-            </div>
+            <Link href="/login" className="text-[#475569] text-center py-2 hover:text-[#004ac6]">Login</Link>
           </div>
         )}
       </nav>
@@ -148,10 +122,15 @@ export default function LandingPage() {
             <Link href="/login" className="w-full sm:w-auto bg-[#0F172A] text-white px-8 py-4 rounded-full text-[16px] leading-[24px] font-medium hover:bg-black transition-all text-center">
               Start Your Implementation
             </Link>
-            <Link href="/contact" className="w-full sm:w-auto bg-white border border-[#E2E8F0] text-[#0F172A] px-8 py-4 rounded-full text-[16px] leading-[24px] font-medium hover:border-[#0F172A] transition-all flex items-center justify-center gap-2">
+            <a
+              href="https://www.youtube.com/watch?v=G0X9JhGpjmw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto bg-white border border-[#E2E8F0] text-[#0F172A] px-8 py-4 rounded-full text-[16px] leading-[24px] font-medium hover:border-[#0F172A] transition-all flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined">play_circle</span>
               Watch System Overview
-            </Link>
+            </a>
           </div>
           <div className="relative max-w-5xl mx-auto animate-reveal active transition-all duration-500 delay-300">
             <div className="rounded-2xl border border-[#E2E8F0] shadow-2xl bg-white overflow-hidden p-2">
@@ -234,11 +213,7 @@ export default function LandingPage() {
                 </div>
                 <div className="col-span-2 bg-[#004ac6] p-8 rounded-2xl text-white shadow-xl text-left">
                   <h3 className="text-[22px] leading-[28px] font-semibold mb-4">The Result?</h3>
-                  <p className="opacity-90 mb-6">One aerospace client recovered $14.2M in &quot;lost&quot; tooling within 90 days of implementation.</p>
-                  <Link className="text-white font-bold inline-flex items-center gap-2 group cursor-pointer" href="/resources">
-                    Read Case Study
-                    <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                  </Link>
+                  <p className="opacity-90">One aerospace client recovered $14.2M in &quot;lost&quot; tooling within 90 days of implementation.</p>
                 </div>
               </div>
             </div>
@@ -538,15 +513,7 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
             <div className="relative z-10 max-w-3xl mx-auto">
               <h2 className="text-[32px] md:text-[42px] leading-[1.2] font-bold tracking-[-0.01em] mb-6">Ready to optimize your enterprise?</h2>
-              <p className="text-xl opacity-90 mb-10">Join 400+ world-class organizations using AssetFlow to achieve resource intelligence.</p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/login" className="bg-white text-[#004ac6] px-10 py-5 rounded-full font-bold text-[16px] leading-[24px] shadow-xl hover:scale-105 transition-transform">
-                  Book Strategy Demo
-                </Link>
-                <Link href="/contact" className="text-white border border-white/30 px-10 py-5 rounded-full font-bold text-[16px] leading-[24px] hover:bg-white/10 transition-all">
-                  Download OS Report
-                </Link>
-              </div>
+              <p className="text-xl opacity-90">Join 400+ world-class organizations using AssetFlow to achieve resource intelligence.</p>
             </div>
           </div>
         </div>
@@ -554,56 +521,14 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-[#faf8ff] border-t border-[#E2E8F0] relative z-10">
-        <div className="max-w-[1320px] mx-auto px-4 md:px-[64px] py-[120px] text-left">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-[32px]">
-            <div className="col-span-2 lg:col-span-1">
-              <Link className="text-[22px] leading-[28px] font-bold text-[#0F172A] mb-6 block" href="/">
+        <div className="max-w-[1320px] mx-auto px-4 md:px-[64px] py-16 text-left">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <span className="text-[22px] leading-[28px] font-bold text-[#0F172A] mb-2 block">
                 AssetFlow
-              </Link>
-              <p className="text-[#94A3B8] text-sm mb-6 max-w-xs">Operating System for Enterprise Resources. Intelligence at every node.</p>
-              <div className="flex gap-4">
-                <a className="text-[#94A3B8] hover:text-[#004ac6] transition-colors" href="#"><span className="material-symbols-outlined">public</span></a>
-                <a className="text-[#94A3B8] hover:text-[#004ac6] transition-colors" href="#"><span className="material-symbols-outlined">alternate_email</span></a>
-              </div>
+              </span>
+              <p className="text-[#94A3B8] text-sm max-w-xs">Operating System for Enterprise Resources. Intelligence at every node.</p>
             </div>
-            <div>
-              <h5 className="font-bold text-[#0F172A] mb-6">Product</h5>
-              <ul className="space-y-4">
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Command Center</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Core Intelligence</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">API Reference</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Integrations</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold text-[#0F172A] mb-6">Company</h5>
-              <ul className="space-y-4">
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">About Us</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Our Mission</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Careers</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold text-[#0F172A] mb-6">Resources</h5>
-              <ul className="space-y-4">
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Case Studies</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Documentation</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Blog</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold text-[#0F172A] mb-6">Legal</h5>
-              <ul className="space-y-4">
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Privacy Policy</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Terms of Service</a></li>
-                <li><a className="text-[#94A3B8] hover:text-[#004ac6] transition-all" href="#">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-[120px] pt-8 border-t border-[#F1F5F9] flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[#94A3B8] text-sm">© {new Date().getFullYear()} AssetFlow OS. Enterprise Resource Intelligence.</p>
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-2 text-xs text-[#16A34A]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>
@@ -611,6 +536,9 @@ export default function LandingPage() {
               </span>
               <span className="text-[#94A3B8] text-xs">v4.1.2-alpha</span>
             </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-[#F1F5F9]">
+            <p className="text-[#94A3B8] text-sm">© {new Date().getFullYear()} AssetFlow OS. Enterprise Resource Intelligence.</p>
           </div>
         </div>
       </footer>
