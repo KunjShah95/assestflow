@@ -157,8 +157,8 @@ export default function LandingPage() {
             <div className="rounded-2xl border border-[#E2E8F0] shadow-2xl bg-white overflow-hidden p-2">
               <img
                 className="w-full h-auto rounded-xl"
-                alt="A clean, minimalist enterprise software dashboard with white backgrounds and deep blue accents."
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGfLY6jJh5JEjs8bztg96N-Sz5S0z3k7qrJDq29qDRjXebqo_2Yi1PlashB97ayNF0AtGh-0kJE5Bjmsu9KaalspuiV-FCQF64UByySH2N055BX8MtdhFpugk5QituEljF-XOvv6fzdtdAPFmF2jlR4RMGiXOvp8pNDSSy_Xy3lpRhyGdOOZJEeQ-9yqEGZuHY2urdJrqfQrgwPjvKX453MGAbunqZKDypYUPLloNR0MxQweYyUtqdZ4WjGRH6zyWxCecOAP5CoTG6"
+                alt="A clean, minimalist enterprise software dashboard showing actual AssetFlow resource metrics."
+                src="/dashboard_preview.png"
               />
             </div>
             <div className="absolute -bottom-6 -right-6 hidden lg:block w-64 p-4 bg-white border border-[#E2E8F0] shadow-xl rounded-xl text-left">
