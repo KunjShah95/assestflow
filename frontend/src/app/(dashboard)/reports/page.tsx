@@ -1,200 +1,330 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { reportService } from '@/services/report.service';
-import { assetService } from '@/services/asset.service';
+import React, { useState } from "react";
+import Modal from "@/components/Modal";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ReportsPage() {
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const { showToast } = useToast();
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState("PDF");
 
-  const handleExport = async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMessage('Report exported successfully! Download will start automatically.');
-    } catch {
-      setMessage('Failed to export reports.');
-    } finally {
-      setLoading(false);
-    }
+  const handleExport = (e: React.FormEvent) => {
+    e.preventDefault();
+    showToast(`Generating and exporting report as ${exportFormat}...`, "success");
+    setIsExportModalOpen(false);
   };
 
-  const deptUtilization = [
-    { name: 'Engineering', rate: 92, color: 'bg-primary' },
-    { name: 'Facilities', rate: 75, color: 'bg-info' },
-    { name: 'Field Ops', rate: 62, color: 'bg-indigo' },
-    { name: 'Marketing', rate: 45, color: 'bg-amber-500' },
-    { name: 'Finance', rate: 38, color: 'bg-slate-500' },
-  ];
-
   return (
-    <div className="flex-1 overflow-y-auto p-8 animate-fade-in max-w-[1200px] mx-auto pb-24">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="flex-1 overflow-y-auto bg-background p-container animate-fade-in">
+      {/* Header */}
+      <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-headline-lg font-bold text-text-primary">Reports & Analytics</h1>
-          <p className="text-body-sm text-text-secondary mt-1">
-            System utilization, maintenance tracking, and resource lifecycle logs.
+          <h2 className="text-headline-lg text-text-primary mb-1">
+            Reports &amp; Analytics
+          </h2>
+          <p className="text-body-md text-text-secondary">
+            System-wide performance and utilization metrics.
           </p>
         </div>
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          className="bg-primary hover:bg-primary/90 text-on-primary text-label-md py-2 px-4 rounded transition-colors flex items-center shadow-sm font-medium"
+        >
+          <span className="material-symbols-outlined text-[18px] mr-2">
+            download
+          </span>
+          Export Report
+        </button>
       </div>
 
-      {message && (
-        <div className="mb-6 p-4 rounded-xl text-body-md font-bold shadow-sm bg-success/10 text-success border border-success/20">
-          {message}
-        </div>
-      )}
-
-      {/* Grid of 2 Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Chart 1: Utilization by Department (Bar Chart) */}
-        <div className="bg-[#eff6ff] rounded-2xl border border-primary/10 p-6 flex flex-col justify-between shadow-xs">
-          <div>
-            <h3 className="text-headline-sm font-black text-[#1e40af] mb-1">
-              Utilization by department
-            </h3>
-            <p className="text-body-sm text-[#1e40af]/70 mb-6 font-semibold">Average active allocation rates</p>
-          </div>
-          
-          {/* Vertical Bar Chart Container */}
-          <div className="h-48 flex items-end justify-between gap-2 px-2 pb-6 border-b border-primary/20 relative">
-            {/* Grid Lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="w-full border-t border-primary/10 border-dashed h-0" />
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-comfortable">
+        {/* Utilization Chart */}
+        <div
+          onClick={() =>
+            showToast("Department Utilization: OPS highest at 92%, HR lowest at 45%", "info")
+          }
+          className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable lg:col-span-2 cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <h3 className="text-headline-sm mb-4">Utilization by Department</h3>
+          <div className="h-64 flex items-end justify-between space-x-2 px-2 pb-6 border-b border-border-subtle relative">
+            {/* Y Axis */}
+            <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-text-secondary text-mono-data text-[10px] w-8">
+              {["100%", "75%", "50%", "25%", "0%"].map((label) => (
+                <span key={label}>{label}</span>
               ))}
             </div>
-            {deptUtilization.map(bar => (
-              <div key={bar.name} className="flex flex-col items-center flex-1 z-10">
-                <div className="text-mono-data text-[10px] text-[#1e40af] font-black mb-1">
-                  {bar.rate}%
-                </div>
-                <div 
-                  className={`w-full max-w-[32px] ${bar.color} rounded-t-lg transition-all duration-500 shadow-sm`}
-                  style={{ height: `${(bar.rate / 100) * 120}px` }}
+            {/* Grid Lines */}
+            <div className="absolute left-10 right-0 top-0 bottom-6 border-l border-border-subtle flex flex-col justify-between pointer-events-none">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className={`w-full border-t border-border-subtle ${
+                    i < 5 ? "border-dashed opacity-50" : ""
+                  } h-0`}
                 />
-                <span className="text-mono-data text-[#1e40af] mt-2 text-[10px] uppercase font-bold truncate max-w-[50px]">
-                  {bar.name.substring(0, 3)}
+              ))}
+            </div>
+            {/* Bars */}
+            {[
+              { label: "ENG", height: 85, opacity: "" },
+              { label: "FAC", height: 60, opacity: "opacity-80" },
+              { label: "HR", height: 45, opacity: "opacity-60" },
+              { label: "OPS", height: 92, opacity: "" },
+              { label: "IT", height: 55, opacity: "opacity-70" },
+              { label: "R&D", height: 78, opacity: "opacity-90" },
+            ].map((bar) => (
+              <div
+                key={bar.label}
+                className="flex flex-col items-center flex-1 z-10 first:ml-10 justify-end h-full"
+              >
+                <div
+                  className={`w-full max-w-[40px] chart-bar rounded-t-sm ${bar.opacity}`}
+                  style={{ height: `${(bar.height / 100) * 220}px` }}
+                />
+                <span className="text-mono-data text-text-secondary mt-2 text-[10px] uppercase truncate w-full text-center">
+                  {bar.label}
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-          {/* Chart 2: Maintenance Frequency (Line Chart) */}
-          <div className="bg-[#f0fdf4] rounded-2xl border border-success/10 p-6 flex flex-col justify-between shadow-xs">
-            <div>
-              <h3 className="text-headline-sm font-black text-emerald-950 mb-1">
-                Maintenance Frequency
-              </h3>
-              <p className="text-body-sm text-emerald-800/70 mb-6 font-semibold">Incident tickets resolved over time</p>
-            </div>
-
-            {/* Line Graph SVG Container */}
-            <div className="h-48 flex items-end relative border-b border-emerald-950/20 pb-6">
-              <svg className="w-full h-[120px] overflow-visible" viewBox="0 0 500 100" preserveAspectRatio="none">
-                {/* Area under the line */}
-                <path
-                  d="M0,80 Q80,20 160,50 T320,10 T500,60 L500,100 L0,100 Z"
-                  fill="url(#emerald-glow)"
-                  opacity="0.2"
-                />
-                {/* The main stroke line */}
-                <path
-                  d="M0,80 Q80,20 160,50 T320,10 T500,60"
-                  fill="none"
-                  stroke="#059669"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-                <defs>
-                  <linearGradient id="emerald-glow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
-
-              {/* Month indicators */}
-              <div className="absolute bottom-1 left-0 right-0 flex justify-between text-mono-data text-[10px] text-emerald-800 font-bold px-2">
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-              </div>
+        {/* Maintenance Line Graph */}
+        <div
+          onClick={() => showToast("Maintenance Frequency peaked in May", "info")}
+          className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <h3 className="text-headline-sm mb-4">Maintenance Frequency</h3>
+          <div className="h-64 relative w-full">
+            <svg
+              className="w-full h-full"
+              preserveAspectRatio="none"
+              viewBox="0 0 100 100"
+            >
+              <line
+                stroke="#E2E8F0"
+                strokeDasharray="2,2"
+                strokeWidth="0.5"
+                x1="0"
+                x2="100"
+                y1="25"
+                y2="25"
+              />
+              <line
+                stroke="#E2E8F0"
+                strokeDasharray="2,2"
+                strokeWidth="0.5"
+                x1="0"
+                x2="100"
+                y1="50"
+                y2="50"
+              />
+              <line
+                stroke="#E2E8F0"
+                strokeDasharray="2,2"
+                strokeWidth="0.5"
+                x1="0"
+                x2="100"
+                y1="75"
+                y2="75"
+              />
+              <path
+                className="chart-area"
+                d="M0,80 L20,60 L40,70 L60,30 L80,45 L100,10 L100,100 L0,100 Z"
+              />
+              <path
+                className="chart-line"
+                d="M0,80 L20,60 L40,70 L60,30 L80,45 L100,10"
+              />
+              <circle cx="20" cy="60" fill="#005c55" r="2" />
+              <circle cx="40" cy="70" fill="#005c55" r="2" />
+              <circle cx="60" cy="30" fill="#005c55" r="2" />
+              <circle cx="80" cy="45" fill="#005c55" r="2" />
+              <circle cx="100" cy="10" fill="#005c55" r="2" />
+            </svg>
+            <div className="absolute bottom-0 w-full flex justify-between text-text-secondary text-mono-data text-[10px] pt-2 border-t border-border-subtle">
+              {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((m) => (
+                <span key={m}>{m}</span>
+              ))}
             </div>
           </div>
-      </div>
+        </div>
 
-      {/* Analytics Lists Grid Column matching Screen 9 wireframe */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         {/* Most Used Assets */}
-        <div className="bg-surface-container-lowest border border-border-subtle rounded-2xl p-6 shadow-sm">
-          <h4 className="text-headline-sm font-bold text-text-primary mb-4 border-b border-border-subtle pb-2">
-            Most used assets
-          </h4>
-          <ul className="space-y-3 text-body-sm text-text-secondary font-medium">
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-primary text-[18px] mt-0.5">meeting_room</span>
-              <span>Room 201: 89 bookings this month</span>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-primary text-[18px] mt-0.5">laptop_mac</span>
-              <span>MacBook Pro: 21 times this month</span>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-primary text-[18px] mt-0.5">videocam</span>
-              <span>Projector AF-0002: 18 times</span>
-            </li>
+        <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-headline-sm">Most Used Assets</h3>
+            <span className="material-symbols-outlined text-text-secondary text-[20px]">
+              trending_up
+            </span>
+          </div>
+          <ul className="space-y-4">
+            {[
+              { icon: "meeting_room", name: "Room B2", sub: "34 bookings this month" },
+              { icon: "directions_car", name: "Van AF-343", sub: "21 trips this month" },
+              { icon: "videocam", name: "Projector AF-335", sub: "18 uses" },
+            ].map((item) => (
+              <li
+                key={item.name}
+                onClick={() => showToast(`Usage insight: ${item.name} (${item.sub})`, "info")}
+                className="flex items-start cursor-pointer hover:bg-surface-container-low p-2 rounded transition-colors"
+              >
+                <div className="bg-surface-container-low p-2 rounded mr-3">
+                  <span className="material-symbols-outlined text-primary text-[20px]">
+                    {item.icon}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-body-sm font-medium text-text-primary">
+                    {item.name}
+                  </p>
+                  <p className="text-mono-data text-text-secondary">{item.sub}</p>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Idle Assets */}
-        <div className="bg-surface-container-lowest border border-border-subtle rounded-2xl p-6 shadow-sm">
-          <h4 className="text-headline-sm font-bold text-text-primary mb-4 border-b border-border-subtle pb-2">
-            Idle assets
-          </h4>
-          <ul className="space-y-3 text-body-sm text-text-secondary font-medium">
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-warning text-[18px] mt-0.5">photo_camera</span>
-              <span>Camera AF-0301: unused 60+ days</span>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-warning text-[18px] mt-0.5">tablet_mac</span>
-              <span>iPad AF-0410: unused 45 days</span>
-            </li>
+        <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-headline-sm">Idle Assets</h3>
+            <span className="material-symbols-outlined text-warning text-[20px]">
+              warning
+            </span>
+          </div>
+          <ul className="space-y-4">
+            {[
+              { icon: "photo_camera", name: "Camera AF-0301", sub: "Unused 60+ days" },
+              { icon: "chair", name: "Chair AF-0410", sub: "Unused 45 days" },
+              { icon: "print", name: "Printer AF-0992", sub: "Unused 30 days" },
+            ].map((item) => (
+              <li
+                key={item.name}
+                onClick={() =>
+                  showToast(`Idle alert: ${item.name} recommended for redistribution`, "warning")
+                }
+                className="flex items-start cursor-pointer hover:bg-surface-container-low p-2 rounded transition-colors"
+              >
+                <div className="bg-surface-container-low p-2 rounded mr-3">
+                  <span className="material-symbols-outlined text-text-secondary text-[20px]">
+                    {item.icon}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-body-sm font-medium text-text-primary">
+                    {item.name}
+                  </p>
+                  <p className="text-mono-data text-text-secondary">{item.sub}</p>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
 
-        {/* Due Maintenance / Retirement */}
-        <div className="bg-surface-container-lowest border border-border-subtle rounded-2xl p-6 shadow-sm">
-          <h4 className="text-headline-sm font-bold text-text-primary mb-4 border-b border-border-subtle pb-2 font-bold">
-            Assets due for maintenance / nearing retirement
-          </h4>
-          <ul className="space-y-3 text-body-sm text-text-secondary font-medium">
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-danger text-[18px] mt-0.5">print</span>
-              <span>Printer AF-0027: service due in 5 days</span>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-danger text-[18px] mt-0.5">computer</span>
-              <span>Laptop AF-0120: 4 years old – nearing retirement</span>
-            </li>
-          </ul>
+        {/* Maintenance / Retirement Action */}
+        <div className="bg-surface-container-lowest rounded-lg border border-border-subtle p-comfortable lg:col-span-1">
+          <h3 className="text-headline-sm mb-4">
+            Maintenance / Retirement Action Required
+          </h3>
+          <div className="space-y-5">
+            {[
+              {
+                name: "Forklift AF-0087",
+                alert: "Due in 5 days",
+                alertColor: "text-danger",
+                barColor: "bg-danger",
+                width: "90%",
+                sub: "Service required",
+              },
+              {
+                name: "Laptop AF-0020",
+                alert: "4 years old",
+                alertColor: "text-warning",
+                barColor: "bg-warning",
+                width: "75%",
+                sub: "Nearing retirement cycle",
+              },
+              {
+                name: "HVAC Unit B-East",
+                alert: "Hours limit",
+                alertColor: "text-warning",
+                barColor: "bg-warning",
+                width: "82%",
+                sub: "Routine inspection",
+              },
+            ].map((item) => (
+              <div key={item.name}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-body-sm font-medium">{item.name}</span>
+                  <span className={`text-mono-data ${item.alertColor}`}>
+                    {item.alert}
+                  </span>
+                </div>
+                <div className="w-full bg-surface-container-high rounded-full h-1.5">
+                  <div
+                    className={`${item.barColor} h-1.5 rounded-full`}
+                    style={{ width: item.width }}
+                  />
+                </div>
+                <p className="text-mono-data text-[10px] text-text-secondary mt-1">
+                  {item.sub}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Export Button Action */}
-      <div className="pt-2">
-        <button
-          onClick={handleExport}
-          disabled={loading}
-          className="bg-primary hover:bg-surface-tint text-on-primary text-label-md px-6 py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-colors cursor-pointer disabled:opacity-50"
-        >
-          {loading ? 'Generating...' : 'Export reports'}
-        </button>
-      </div>
+      {/* Export Modal */}
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Enterprise Analytics Report"
+      >
+        <form onSubmit={handleExport} className="space-y-4">
+          <p className="text-body-sm text-text-secondary">
+            Choose the desired format for the Q3 Enterprise Utilization &amp; Asset
+            Health report.
+          </p>
+          <div>
+            <label className="block text-label-md mb-2">Export Format</label>
+            <div className="grid grid-cols-3 gap-3">
+              {["PDF", "Excel (XLSX)", "CSV"].map((format) => (
+                <button
+                  key={format}
+                  type="button"
+                  onClick={() => setExportFormat(format)}
+                  className={`p-3 rounded-lg border text-label-md transition-all ${
+                    exportFormat === format
+                      ? "border-primary bg-primary/10 text-primary font-bold ring-1 ring-primary"
+                      : "border-border-subtle hover:bg-surface-container"
+                  }`}
+                >
+                  {format}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsExportModalOpen(false)}
+              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90 font-medium"
+            >
+              Generate Export
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "@/components/Sidebar";
-import { ToastProvider } from "@/components/ToastProvider";
 
 export default function DashboardLayout({
   children,
@@ -30,22 +29,20 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen bg-[#F8FAFC]">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        <main
-          className={`transition-all duration-300 ease-in-out min-h-screen ${
-            sidebarCollapsed ? 'ml-[64px]' : 'ml-[240px]'
-          }`}
-        >
-          <div className="px-8 py-8 max-w-[1320px]">
-            {children}
-          </div>
-        </main>
-      </div>
-    </ToastProvider>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      <main
+        className={`transition-all duration-300 ease-in-out min-h-screen ${
+          sidebarCollapsed ? 'ml-[64px]' : 'ml-[240px]'
+        }`}
+      >
+        <div className="px-8 py-8 max-w-[1320px]">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }
