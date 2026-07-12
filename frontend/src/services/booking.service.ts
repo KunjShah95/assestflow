@@ -1,18 +1,17 @@
-import { apiGet, apiPost, apiDelete } from '@/lib/api-client';
-import type { ApiResponse } from '@/types/common';
+import { apiGet, apiPost, apiPatch } from '@/lib/api-client';
 import type { Booking } from '@/types/booking';
 
 export const bookingService = {
+  list() {
+    return apiGet<Booking[]>('/bookings');
+  },
+
   create(data: { assetId: number; startTime: string; endTime: string }) {
     return apiPost<Booking>('/bookings', data);
   },
 
   cancel(id: number) {
-    return apiDelete(`/bookings/${id}`);
-  },
-
-  myBookings() {
-    return apiGet<Booking[]>('/bookings/mine');
+    return apiPatch<{ message: string }>(`/bookings/${id}/cancel`, {});
   },
 
   calendar(assetId: number, startDate?: string, endDate?: string) {
@@ -20,6 +19,6 @@ export const bookingService = {
     if (startDate) params.set('startDate', startDate);
     if (endDate) params.set('endDate', endDate);
     const qs = params.toString();
-    return apiGet<Booking[]>(`/bookings/asset/${assetId}/calendar${qs ? `?${qs}` : ''}`);
+    return apiGet<Booking[]>(`/bookings/calendar/${assetId}${qs ? `?${qs}` : ''}`);
   },
 };

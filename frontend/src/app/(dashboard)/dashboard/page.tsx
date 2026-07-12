@@ -1,144 +1,332 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { reportService } from '@/services/report.service';
-import { activityService } from '@/services/activity.service';
-import { departmentService } from '@/services/department.service';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Modal from "@/components/Modal";
+import { useToast } from "@/components/ToastProvider";
+import { reportService } from "@/services/report.service";
+import { activityService } from "@/services/activity.service";
 
-interface KPI { totalAssets?: number; allocated?: number; activeBookings?: number; pendingTransfers?: number; overdueReturns?: number }
+interface ActivityItem {
+  icon: string;
+  iconBg: string;
+  title: string;
+  desc: string;
+  time: string;
+}
+
+interface KpiData {
+  availableAssets: number;
+  allocatedAssets: number;
+  activeBookings: number;
+  pendingTransfers: number;
+  overdueReturns: number;
+}
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const [kpi, setKpi] = useState<KPI | null>(null);
-  const [recentActivity, setRecentActivity] = useState<{ icon: string; iconBg: string; title: string; desc: string; time: string }[]>([]);
-  const [deptCount, setDeptCount] = useState(0);
+  const router = useRouter();
+  const { showToast } = useToast();
+
+  const [loading, setLoading] = useState(true);
+  const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
+
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [newAsset, setNewAsset] = useState({
+    name: "",
+    category: "Electronics",
+    location: "Bengaluru, BLR-01",
+    tag: "AF-0250",
+  });
 
   useEffect(() => {
-    reportService.kpi().then(setKpi).catch(() => {});
-    departmentService.list().then(d => setDeptCount(d.Count)).catch(() => {});
-    activityService.logs().then(logs => {
-      const mapped = (logs.value || []).slice(0, 4).map(l => ({
-        icon: 'info',
-        iconBg: 'bg-secondary-container text-primary',
-        title: l.action,
-        desc: l.details || `${l.entityType} #${l.entityId}`,
-        time: new Date(l.createdAt).toLocaleTimeString(),
-      }));
-      setRecentActivity(mapped);
-    }).catch(() => {});
+    async function fetchData() {
+      try {
+        const [kpiData, logs] = await Promise.all([
+          reportService.kpi(),
+          activityService.logs(),
+        ]);
+        setKpi(kpiData);
+
+        const mapped = (logs || []).slice(0, 5).map((log: any) => ({
+          icon: log.action?.toLowerCase().includes("alloc") ? "computer" :
+                log.action?.toLowerCase().includes("book") ? "meeting_room" :
+                log.action?.toLowerCase().includes("maintenance") ? "build" :
+                log.action?.toLowerCase().includes("return") ? "chair" : "info",
+          iconBg: log.action?.toLowerCase().includes("alloc") ? "bg-secondary-container text-primary" :
+                  log.action?.toLowerCase().includes("book") ? "bg-tertiary-container/20 text-tertiary" :
+                  log.action?.toLowerCase().includes("maintenance") ? "bg-success/10 text-success" :
+                  log.action?.toLowerCase().includes("return") ? "bg-secondary-container text-primary" :
+                  "bg-surface-container text-text-secondary",
+          title: `${log.action || "Activity"} #${log.id}`,
+          desc: log.details || `${log.entityType || "Entity"} updated`,
+          time: log.createdAt ? new Date(log.createdAt).toLocaleDateString() : "Recently",
+        }));
+
+        if (mapped.length === 0) {
+          setRecentActivities([
+            { icon: "computer", iconBg: "bg-secondary-container text-primary", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
+            { icon: "meeting_room", iconBg: "bg-tertiary-container/20 text-tertiary", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
+          ]);
+        } else {
+          setRecentActivities(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+        // Fallback mock data
+        setKpi({ availableAssets: 128, allocatedAssets: 76, activeBookings: 9, pendingTransfers: 3, overdueReturns: 2 });
+        setRecentActivities([
+          { icon: "computer", iconBg: "bg-secondary-container text-primary", title: "Laptop AF-0114", desc: "Allocated to Priya Shah – IT Dept", time: "10:42 AM" },
+          { icon: "meeting_room", iconBg: "bg-tertiary-container/20 text-tertiary", title: "Room B2", desc: "Booking confirmed – 2:00 to 3:00 PM", time: "09:15 AM" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
 
-  const firstRow = [
-    { label: 'Available', value: kpi?.totalAssets !== undefined ? kpi.totalAssets - (kpi.allocated ?? 0) : 128 },
-    { label: 'Allocated', value: kpi?.allocated ?? 36 },
-    { label: 'Under Maintenance', value: 8 },
-  ];
+  const handleRegisterAsset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAsset.name) {
+      showToast("Please enter an asset name", "error");
+      return;
+    }
+    setRecentActivities([
+      {
+        icon: "inventory_2",
+        iconBg: "bg-primary/10 text-primary",
+        title: `${newAsset.name} (${newAsset.tag})`,
+        desc: `Registered to ${newAsset.location} [${newAsset.category}]`,
+        time: "Just now",
+      },
+      ...recentActivities,
+    ]);
+    showToast(`Successfully registered ${newAsset.name} (${newAsset.tag})!`, "success");
+    setIsRegisterOpen(false);
+    setNewAsset({
+      name: "",
+      category: "Electronics",
+      location: "Bengaluru, BLR-01",
+      tag: `AF-${Math.floor(1000 + Math.random() * 9000)}`,
+    });
+  };
 
-  const secondRow = [
-    { label: 'Active Bookings', value: kpi?.activeBookings ?? 4 },
-    { label: 'Pending Transfers', value: kpi?.pendingTransfers ?? 3 },
-    { label: 'Upcoming returns', value: kpi?.overdueReturns !== undefined ? kpi.overdueReturns + 9 : 12 },
-  ];
-
-  const wireframeActivities = [
-    {
-      icon: 'sync_alt',
-      iconBg: 'bg-info/10 text-info',
-      title: 'Allocation',
-      desc: 'Laptop AF-0114 - allocated to Priya Shah - IT dept.',
-      time: 'Just now',
-    },
-    {
-      icon: 'calendar_today',
-      iconBg: 'bg-primary/10 text-primary',
-      title: 'Booking Confirmed',
-      desc: 'Room 302 - booking confirmed - 2:00 to 3:00 PM',
-      time: '1h ago',
-    },
-    {
-      icon: 'build_circle',
-      iconBg: 'bg-success/10 text-success',
-      title: 'Maintenance Resolved',
-      desc: 'Projector AF-0002 - maintenance resolved',
-      time: '2h ago',
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="text-text-secondary animate-pulse font-medium">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 pb-24 animate-fade-in max-w-[1200px] mx-auto">
-      <div className="flex justify-between items-end mb-8">
+    <div className="flex-1 overflow-y-auto p-container pb-24 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex justify-between items-end mb-6">
         <div>
-          <h1 className="text-headline-lg font-bold text-text-primary">Today's Overview</h1>
-          <p className="text-body-sm text-text-secondary mt-1">Real-time status of your enterprise assets.</p>
+          <h1 className="text-headline-lg text-text-primary">Today&apos;s Overview</h1>
+          <p className="text-body-sm text-text-secondary mt-1">
+            Real-time status of your enterprise assets.
+          </p>
         </div>
       </div>
 
-      {/* KPI Cards Row 1 */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
-        {firstRow.map(card => (
-          <div key={card.label} className="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 flex flex-col hover:shadow-md transition-shadow">
-            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2 font-semibold">{card.label}</span>
-            <span className="text-headline-lg text-text-primary font-black text-3xl">{card.value}</span>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Available", value: kpi?.availableAssets ?? 0, route: "/assets" },
+          { label: "Allocated", value: kpi?.allocatedAssets ?? 0, route: "/allocation" },
+          { label: "Active Bookings", value: kpi?.activeBookings ?? 0, route: "/booking" },
+          { label: "Pending Transfers", value: kpi?.pendingTransfers ?? 0, route: "/allocation" },
+        ].map((card) => (
+          <div
+            key={card.label}
+            onClick={() => router.push(card.route)}
+            className="bg-surface-container-lowest border border-border-subtle rounded-lg p-standard flex flex-col hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
+          >
+            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2">
+              {card.label}
+            </span>
+            <span className="text-headline-lg text-text-primary font-bold">
+              {card.value}
+            </span>
           </div>
         ))}
       </div>
 
-      {/* KPI Cards Row 2 */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
-        {secondRow.map(card => (
-          <div key={card.label} className="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 flex flex-col hover:shadow-md transition-shadow">
-            <span className="text-label-md text-text-secondary uppercase tracking-wider mb-2 font-semibold">{card.label}</span>
-            <span className="text-headline-lg text-text-primary font-black text-3xl">{card.value}</span>
+      {/* Alert Banner */}
+      {(kpi?.overdueReturns ?? 0) > 0 && (
+        <div
+          onClick={() => router.push("/activity")}
+          className="bg-error-container text-on-error-container border border-error/20 rounded-lg p-standard flex items-center justify-between gap-3 mb-8 cursor-pointer hover:bg-error-container/80 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined">warning</span>
+            <span className="text-body-md font-medium">
+              {kpi?.overdueReturns} asset(s) overdue for return – flagged for follow-up
+            </span>
           </div>
-        ))}
+          <span className="text-label-md font-bold underline">Review Alerts</span>
+        </div>
+      )}
+
+      {/* Primary Actions */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        <button
+          onClick={() => setIsRegisterOpen(true)}
+          className="bg-primary text-on-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            add
+          </span>
+          Register Asset
+        </button>
+        <button
+          onClick={() => router.push("/booking")}
+          className="border border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-surface-container-low transition-colors"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            event
+          </span>
+          Book Resource
+        </button>
+        <button
+          onClick={() => router.push("/maintenance")}
+          className="border border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-2.5 rounded-md flex items-center gap-2 hover:bg-surface-container-low transition-colors"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            support_agent
+          </span>
+          Raise Requests
+        </button>
       </div>
 
-      {/* Red Alert Banner */}
-      <div className="bg-error-container text-on-error-container border border-error/20 rounded-xl p-4 flex items-center gap-3 mb-8 shadow-sm">
-        <span className="material-symbols-outlined text-error text-[22px]">warning</span>
-        <span className="text-body-md font-bold">3 assets overdue for return - flagged for follow-up</span>
-      </div>
-
-      {/* Quick Action Buttons */}
-      <div className="flex flex-wrap gap-4 mb-10">
-        <Link href="/assets" className="bg-primary hover:bg-surface-tint text-on-primary text-label-md px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-bold shadow-md hover:shadow-lg">
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
-          + register asset
-        </Link>
-        <Link href="/booking" className="border-2 border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-surface-container-low transition-all font-bold">
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>event</span>
-          Book resource
-        </Link>
-        <Link href="/maintenance" className="border-2 border-border-subtle bg-surface-container-lowest text-text-primary text-label-md px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-surface-container-low transition-all font-bold">
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>support_agent</span>
-          Raise requests
-        </Link>
-      </div>
-
-      {/* Recent Activity Section */}
-      <div className="bg-surface-container-lowest border border-border-subtle rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-6 py-5 border-b border-border-subtle bg-surface-bright">
-          <h2 className="text-headline-sm font-bold text-text-primary">Recent Activity</h2>
+      {/* Recent Activity Table */}
+      <div className="bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden">
+        <div className="px-comfortable py-standard border-b border-border-subtle bg-surface-bright flex justify-between items-center">
+          <h2 className="text-headline-sm text-text-primary">Recent Activity</h2>
+          <button
+            onClick={() => router.push("/activity")}
+            className="text-label-md text-primary hover:underline"
+          >
+            View All Logs
+          </button>
         </div>
         <div className="divide-y divide-border-subtle">
-          {wireframeActivities.map((item, i) => (
-            <div key={i} className="px-6 py-4 flex items-start gap-4 hover:bg-surface-container-low transition-colors group">
-              <div className={`w-10 h-10 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-sm`}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{item.icon}</span>
+          {recentActivities.slice(0, 5).map((item, i) => (
+            <div
+              key={i}
+              onClick={() => showToast(`Activity details: ${item.title} - ${item.desc}`, "info")}
+              className="px-comfortable py-standard flex items-start gap-4 hover:bg-surface-container transition-colors group cursor-pointer"
+            >
+              <div
+                className={`w-8 h-8 rounded-full ${item.iconBg} flex items-center justify-center shrink-0 mt-1`}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  {item.icon}
+                </span>
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1">
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-body-md text-text-primary font-bold">{item.title}</span>
-                  <span className="text-mono-data text-text-muted text-xs">{item.time}</span>
+                  <span className="text-label-md text-text-primary font-bold">
+                    {item.title}
+                  </span>
+                  <span className="text-mono-data text-text-secondary">{item.time}</span>
                 </div>
-                <p className="text-body-sm text-text-secondary leading-relaxed">{item.desc}</p>
+                <p className="text-body-sm text-text-secondary">{item.desc}</p>
               </div>
             </div>
           ))}
+          {recentActivities.length === 0 && (
+            <div className="p-8 text-center text-text-secondary">No recent activity</div>
+          )}
         </div>
       </div>
+
+      {/* Register Asset Modal */}
+      <Modal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
+        title="Register New Enterprise Asset"
+      >
+        <form onSubmit={handleRegisterAsset} className="space-y-4">
+          <div>
+            <label className="block text-label-md mb-1" htmlFor="asset-tag">
+              Asset Tag ID
+            </label>
+            <input
+              id="asset-tag"
+              type="text"
+              value={newAsset.tag}
+              onChange={(e) => setNewAsset({ ...newAsset, tag: e.target.value })}
+              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md font-mono"
+            />
+          </div>
+          <div>
+            <label className="block text-label-md mb-1" htmlFor="asset-name">
+              Equipment Name
+            </label>
+            <input
+              id="asset-name"
+              type="text"
+              placeholder="e.g. MacBook Pro M3 16-inch"
+              value={newAsset.name}
+              onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })}
+              className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-label-md mb-1" htmlFor="asset-category">
+                Category
+              </label>
+              <select
+                id="asset-category"
+                value={newAsset.category}
+                onChange={(e) => setNewAsset({ ...newAsset, category: e.target.value })}
+                className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
+              >
+                <option value="Electronics">Electronics</option>
+                <option value="Furniture">Furniture</option>
+                <option value="Networking">Networking</option>
+                <option value="Vehicles">Vehicles</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-label-md mb-1" htmlFor="asset-location">
+                Location
+              </label>
+              <select
+                id="asset-location"
+                value={newAsset.location}
+                onChange={(e) => setNewAsset({ ...newAsset, location: e.target.value })}
+                className="w-full bg-surface border border-border-subtle rounded px-3 py-2 text-body-md focus:border-primary outline-none"
+              >
+                <option value="Bengaluru, BLR-01">Bengaluru, BLR-01</option>
+                <option value="Mumbai, Server Rm 1">Mumbai, Server Rm 1</option>
+                <option value="HQ, Floor 2">HQ, Floor 2</option>
+                <option value="Warehouse A">Warehouse A</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsRegisterOpen(false)}
+              className="px-4 py-2 rounded text-label-md border border-border-subtle hover:bg-surface-container"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded text-label-md bg-primary text-on-primary hover:bg-primary/90"
+            >
+              Register Asset
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

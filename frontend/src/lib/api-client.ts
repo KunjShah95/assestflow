@@ -2,14 +2,17 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
+  if (typeof localStorage === 'undefined') return null;
   return localStorage.getItem('token');
 }
 
 export function setToken(token: string) {
+  if (typeof localStorage === 'undefined') return;
   localStorage.setItem('token', token);
 }
 
 export function clearToken() {
+  if (typeof localStorage === 'undefined') return;
   localStorage.removeItem('token');
 }
 
@@ -27,8 +30,12 @@ export async function apiClient<T>(
   const res = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Request failed: ${res.status}`);
+    let errorMsg = `Request failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      errorMsg = body.error || errorMsg;
+    } catch { /* ignore */ }
+    throw new Error(errorMsg);
   }
 
   return res.json();

@@ -1,10 +1,9 @@
 import { apiGet, apiPost, apiPatch } from '@/lib/api-client';
-import type { ApiResponse } from '@/types/common';
 import type { AuditCycle, AuditResult } from '@/types/audit';
 
 export const auditService = {
   listCycles() {
-    return apiGet<ApiResponse<AuditCycle>>('/audits/cycles');
+    return apiGet<AuditCycle[]>('/audits');
   },
 
   createCycle(data: {
@@ -15,18 +14,18 @@ export const auditService = {
     endDate: string;
     auditorIds?: number[];
   }) {
-    return apiPost<AuditCycle>('/audits/cycles', data);
+    return apiPost<AuditCycle>('/audits', data);
   },
 
   markAsset(cycleId: number, data: { assetId: number; status: string; notes?: string }) {
-    return apiPost<AuditResult>(`/audits/cycles/${cycleId}/mark`, data);
+    return apiPost<{ message: string }>(`/audits/${cycleId}/mark`, data);
   },
 
   closeCycle(id: number) {
-    return apiPatch<AuditResult>(`/audits/cycles/${id}/close`, {});
+    return apiPatch<{ message: string }>(`/audits/${id}/close`, {});
   },
 
   getResults(cycleId: number) {
-    return apiGet<AuditResult[]>(`/audits/cycles/${cycleId}/results`);
+    return apiGet<AuditResult[]>(`/audits/${cycleId}/results`);
   },
 };

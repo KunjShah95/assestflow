@@ -11,8 +11,8 @@ export const authService = {
     return apiPost<LoginResponse>('/auth/login', { email, password });
   },
 
-  signup(data: { email: string; password: string; name: string; departmentId?: number }) {
-    return apiPost<User>('/auth/signup', data);
+  signup(data: { email: string; password: string; name: string }) {
+    return apiPost<LoginResponse>('/auth/signup', data);
   },
 
   me() {
