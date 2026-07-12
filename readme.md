@@ -460,6 +460,13 @@ assetflow/
 - **Bulk Import/Export:** CSV/Excel import for asset registration (with validation preview). Export any report to PDF/XLSX.
 - **Public Asset Booking Portal:** Self-service booking portal for bookable assets (meeting rooms, vehicles, equipment) visible to non-authenticated users with limited time-slot selection.
 
+### Phase: Enterprise Structure & Policy Governance
+
+- **Visual Department Organograms:** Dynamic, interactive drag-and-drop structural editor for managing department parent-child hierarchies.
+- **Warranty Lifecycle Alerts:** Automated warning notifications when an asset's age nears the category's `warrantyPeriodDays` threshold (e.g., 30/60/90 days remaining).
+- **Policy Compliance Sandbox:** A simulation tool for administrators to preview how a new policy (such as cost limits or role requirements) will affect current allocations before publishing it.
+- **Location Geofencing & IoT Tracking:** Visual mapping of custom asset locations and alerting if assets are detected outside of their registered location.
+
 ### Phase: Operational Excellence
 
 - **Soft Delete & Archival:** Configurable retention policies with recycle bin for assets, allocations, and audit records.
