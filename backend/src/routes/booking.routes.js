@@ -3,7 +3,7 @@ import { doBook, doCancel, getCalendar, listUserBookings } from '../controllers/
 import { asyncHandler } from '../middleware/asyncHandler.js';
 
 export const bookingRouter = Router();
-bookingRouter.get('/', authenticate, asyncHandler(listUserBookings));
-bookingRouter.post('/', authenticate, asyncHandler(doBook));
-bookingRouter.patch('/:id/cancel', authenticate, asyncHandler(doCancel));
-bookingRouter.get('/calendar/:assetId', authenticate, asyncHandler(getCalendar));
+bookingRouter.get('/', asyncHandler(listUserBookings));
+bookingRouter.post('/', asyncHandler(doBook));
+bookingRouter.patch('/:id/cancel', asyncHandler(doCancel));
+bookingRouter.get('/calendar/:assetId', asyncHandler(getCalendar));
