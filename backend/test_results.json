@@ -111,7 +111,7 @@
     "id": "FR-03.1",
     "name": "GET /departments lists departments",
     "status": "PASS",
-    "detail": "count=8"
+    "detail": "count=5"
   },
   {
     "id": "FR-03.2",
@@ -135,7 +135,7 @@
     "id": "FR-03.5",
     "name": "GET /categories lists categories",
     "status": "PASS",
-    "detail": "count=8"
+    "detail": "count=6"
   },
   {
     "id": "FR-03.6",
@@ -147,7 +147,7 @@
     "id": "FR-03.8",
     "name": "GET /employees lists all",
     "status": "PASS",
-    "detail": "count=15"
+    "detail": "count=13"
   },
   {
     "id": "FR-03.8b",
@@ -159,7 +159,7 @@
     "id": "FR-04.2a",
     "name": "GET /assets lists assets",
     "status": "PASS",
-    "detail": "count=17"
+    "detail": "count=15"
   },
   {
     "id": "FR-04.2b",
@@ -183,7 +183,7 @@
     "id": "FR-04.1b",
     "name": "Auto-generates asset tag (AF-XXXX)",
     "status": "PASS",
-    "detail": "tag=AF-0018"
+    "detail": "tag=AF-0016"
   },
   {
     "id": "FR-04.1c",
@@ -254,14 +254,14 @@
   {
     "id": "FR-06.1a",
     "name": "POST /bookings creates booking",
-    "status": "FAIL",
+    "status": "PASS",
     "detail": ""
   },
   {
     "id": "FR-06.1b",
     "name": "Booking status is upcoming",
-    "status": "FAIL",
-    "detail": "status=undefined"
+    "status": "PASS",
+    "detail": "status=upcoming"
   },
   {
     "id": "FR-06.1c",
@@ -272,8 +272,14 @@
   {
     "id": "FR-06.1d",
     "name": "Exact boundary booking allowed",
-    "status": "FAIL",
-    "detail": "status=409"
+    "status": "PASS",
+    "detail": "status=201"
+  },
+  {
+    "id": "FR-06.2",
+    "name": "PATCH /bookings/:id/cancel cancels",
+    "status": "PASS",
+    "detail": ""
   },
   {
     "id": "FR-06.3",
@@ -393,7 +399,7 @@
     "id": "FR-08.6",
     "name": "GET /audits lists cycles",
     "status": "PASS",
-    "detail": "count=4"
+    "detail": "count=3"
   },
   {
     "id": "FR-09.2",
@@ -435,13 +441,13 @@
     "id": "FR-10.2",
     "name": "GET activity-log returns entries",
     "status": "PASS",
-    "detail": "count=16"
+    "detail": "count=8"
   },
   {
     "id": "FR-11.1",
     "name": "GET /policies lists policies",
     "status": "PASS",
-    "detail": "count=3"
+    "detail": "count=2"
   },
   {
     "id": "FR-11.2",
@@ -477,7 +483,7 @@
     "id": "NFR-8.1d",
     "name": "Zod validation rejects bad input",
     "status": "PASS",
-    "detail": "status=500"
+    "detail": "status=400"
   },
   {
     "id": "BR-01",

@@ -6,6 +6,6 @@ import { asyncHandler } from '../middleware/asyncHandler.js';
 export const allocationRouter = Router();
 allocationRouter.get('/', list);
 allocationRouter.post('/', requireRole('asset_manager', 'admin', 'department_head'), doAllocate);
-allocationRouter.post('/transfer', requireRole('asset_manager', 'admin'), doTransfer);
+allocationRouter.post('/transfer', requireRole('employee', 'department_head', 'asset_manager', 'admin'), doTransfer);
 allocationRouter.patch('/transfer/:id/approve', requireRole('asset_manager', 'admin'), approveTransfer);
 allocationRouter.post('/:id/return', requireRole('asset_manager', 'admin'), doReturn);
