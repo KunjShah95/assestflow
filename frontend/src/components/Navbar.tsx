@@ -29,14 +29,12 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-<<<<<<< HEAD
   // Hide navbar for authenticated users — the Sidebar handles navigation
   if (user) return null;
-=======
+
   if (isDashboardRoute(pathname) || pathname === "/") {
     return null;
   }
->>>>>>> f32fdd2 (feat: enhance notification and activity logging with detailed asset and employee information)
 
   const guestLinks = [
     { label: "Product", href: "/product" },
