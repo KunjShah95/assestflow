@@ -24,13 +24,14 @@ export default function Navbar() {
 
   const authLinks = [
     { label: "Dashboard", href: "/dashboard" },
-    { label: "Org Setup", href: "/organization-setup" },
+    { label: "Organization setup", href: "/organization-setup" },
     { label: "Assets", href: "/assets" },
-    { label: "Allocation", href: "/allocation" },
-    { label: "Booking", href: "/booking" },
-    { label: "Maintain", href: "/maintenance" },
+    { label: "Allocation & Transfer", href: "/allocation" },
+    { label: "Resource Booking", href: "/booking" },
+    { label: "Maintenance", href: "/maintenance" },
     { label: "Audit", href: "/audit" },
     { label: "Reports", href: "/reports" },
+    { label: "Notifications", href: "/activity" },
   ];
 
   const activeLinks = user ? authLinks : guestLinks;
